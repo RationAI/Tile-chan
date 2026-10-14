@@ -11,7 +11,9 @@ place it is not, and why. Three categories:
   clients.
 
 Each entry names the Python source it came from so the two can be re-checked when the
-upstream code changes.
+upstream code changes. The list is complete as of the port's completion: the differential
+harness allowlists a difference only against an entry here, so anything it tolerates is
+written down below.
 
 ---
 

@@ -9,7 +9,8 @@ recorded in [`docs/divergences.md`](docs/divergences.md) rather than left to be 
 
 ## Status
 
-Everything except one format plugin is ported.
+All five format plugins are ported, and the port is verified against the Python
+service end to end.
 
 | Area | State |
 |---|---|
@@ -111,10 +112,17 @@ crates/
   wsi-auth/             authentication integrations, JWT/JWKS validation
   wsi-plugin-pil/       plain raster images (.png .jpg .jpeg)
   wsi-plugin-openslide/ vendor WSI formats, via libopenslide
+  wsi-plugin-tifffile/  OME-TIFF, ImageJ and generic multichannel/Z TIFFs, with the
+                        TIFF reader the tiffslide and wsidicom plugins also use
+  wsi-plugin-tiffslide/ Aperio SVS and generic pyramidal TIFF
+  wsi-plugin-wsidicom/  DICOM VL Whole Slide Microscopy directories
+  wsi-plugin-nifti/     NIfTI-1 and NIfTI-2 volumes (.nii .nii.gz)
+  wsi-plugin-mvt/       vector and JSON tiles, .mbtiles, manifests, z/x/y trees
   wsi-server/           axum routers, OpenAPI, download/batch archives, the binary
   wsi-parity/           the differential harness
 assets/                 viewer.html and validation_viewer.html, copied verbatim
 docs/divergences.md     every intentional and reproduced difference from Python
+docs/followup-plan.md   how each plugin was ported, and what it cost to learn
 ```
 
 ## Building
@@ -246,7 +254,8 @@ never asks for a plugin by name, so disabling openslide is the only way to reach
 decoders differ by a measured one per channel, which divergence 28 explains and quantifies.
 Keeping the DICOM slide under its own `--context` is what lets pass A stay exact.
 
-`docs/followup-plan.md` records all three runs and how to reproduce them.
+[`docs/followup-plan.md`](docs/followup-plan.md) records all three runs, how to
+reproduce them, and the facts about the Python service that were expensive to establish.
 
 Pointing both URLs at the same service is a useful self-check that the matrix runs clean:
 

@@ -1,42 +1,48 @@
-# WSI-Service Rust port — followup plan (session handoff)
+# WSI-Service Rust port — implementation notes
 
 ## Context
 
 `rust/` in this repository holds a Rust re-implementation of the Python `wsi_service`,
 intended as a drop-in replacement: same URLs, parameters, status codes, response bodies, and
-pixel-identical images. Everything is done and verified except one format plugin,
-`wsidicom`.
+pixel-identical images. **It is complete**: all five format plugins are ported, and the
+differential harness compares the two services clean in three configurations.
 
-This document exists so a **new session with no memory of the work** can pick it up without
-re-deriving what has already been learned. The hard-won facts in *Knowledge that must not be
-rediscovered* are the most valuable part — several were found only by comparing against real
-slides, and each one cost real effort.
+This document began as a plan and is now the record. Its most valuable part is *Knowledge
+that must not be rediscovered* — facts about the Python service and the libraries under it
+that were found only by comparing against real slides, each one having cost real effort.
+Anyone extending the port, or explaining why it behaves as it does, should start there and
+in `divergences.md`.
 
-First actions on picking this up:
+Where to look:
 
-1. Read `rust/README.md` and `rust/docs/divergences.md` — the latter is the behavioural
-   contract and is non-negotiable context.
-2. The work lives on `feat/rust-service`, one commit per plugin.
+1. `rust/README.md` for the surface and how to run it; `rust/docs/divergences.md` for the
+   behavioural contract, which is non-negotiable context.
+2. The work lives on `feat/rust-service`, roughly one commit per plugin, with the fixes the
+   parity run forced split out by cause.
 
 ---
 
 ## Current state
 
-Clippy and rustfmt clean; 9 crates. The test counts are in `README.md`, which is the
+Clippy and rustfmt clean; 12 crates. The test counts are in `README.md`, which is the
 document to keep current.
 
-**How each plugin was verified matters more than that it was.** The three ported in this
-round each got their expectations from the Python library they replace, recorded into a
-committed fixture:
+**How each plugin was verified matters more than that it was.** Each one got its
+expectations from the Python library it replaces, recorded into a committed fixture rather
+than asserted from whatever the port happened to produce:
 
 | plugin | oracle | where |
 |---|---|---|
+| `openslide` | the Python plugin's own tests, on real slides | `wsi-plugin-openslide/tests/` |
 | `tifffile` | `tifffile` itself, over 27 generated TIFFs | `wsi-plugin-tifffile/tests/fixtures/` |
 | `tiffslide` | `tiffslide` itself, over three real slides | `wsi-plugin-tiffslide/tests/fixtures/` |
+| `wsidicom` | `wsidicom` itself, over three real DICOM directories | `wsi-plugin-wsidicom/tests/fixtures/` |
 | `nifti` | the Python plugin's own asserted pixel arrays | inline in `lib.rs` |
 
-Both generators run in a container, so nothing is installed on the host, and both record
-enough that a mismatch names the pixel rather than just failing.
+The generators run in a container, so nothing is installed on the host, and each records
+enough that a mismatch names the pixel rather than just failing. The fixtures are committed
+precisely so that upgrading one of those libraries cannot move the target silently —
+regenerating is a deliberate act, and `git diff` shows what changed.
 
 | Area | State |
 |---|---|
@@ -59,7 +65,7 @@ enough that a mismatch names the pixel rather than just failing.
 | Plugin `tiffslide` — verified against tiffslide's own output | done |
 | Differential parity harness (`wsi-parity`) | done |
 | Docker images, compose, CI | done |
-| Plugin `wsidicom` | **remaining** |
+| Plugin `wsidicom` — verified against wsidicom's own output | done |
 
 ### Crate layout
 
@@ -71,6 +77,13 @@ rust/crates/
   wsi-auth/             auth integrations, JWT/JWKS
   wsi-plugin-pil/       .png .jpg .jpeg
   wsi-plugin-openslide/ vendor WSI formats via libopenslide (FFI in src/ffi.rs)
+  wsi-plugin-tifffile/  OME-TIFF / ImageJ / generic TIFFs, plus the TIFF reader in
+                        src/tiff/ that tiffslide and wsidicom reuse
+  wsi-plugin-tiffslide/ Aperio SVS, generic pyramidal TIFF
+  wsi-plugin-wsidicom/  DICOM directories; src/dicom.rs is the reader, src/reader.rs
+                        the WsiDicom surface the plugin uses
+  wsi-plugin-nifti/     NIfTI-1 / NIfTI-2, hand-written reader for bounded lazy reads
+  wsi-plugin-mvt/       vector/JSON tiles, .mbtiles via rusqlite
   wsi-server/           axum routers, OpenAPI, download/batch archives, binary
   wsi-parity/           differential harness
 ```
@@ -106,7 +119,8 @@ profile is a **500, not a 404**.
 `wsi_service_base_plugins/*/tests/test_plugin.py` carry concrete expected extents, level
 counts, pixel sizes and **pixel values** for real slides. Lift those into Rust tests rather
 than asserting whatever the port produces. That is how the openslide plugin was validated,
-and how the remaining ones should be.
+and every plugin after it followed the same rule — for the four with no usable Python test,
+by generating the ground truth from the Python library itself into a committed fixture.
 
 ### 4. Real slides are available locally
 
@@ -145,9 +159,9 @@ docker build -f Dockerfile.dev -t wsi-rs-dev .          # first build takes minu
 
 ---
 
-## Remaining work, in order
+## How each plugin was ported
 
-### Step 1 — `tifffile` — **done**
+### 1. `tifffile`
 
 `crates/wsi-plugin-tifffile/`. The single most valuable thing this step produced is not the
 code but **`tests/fixtures/`**: a fixture generator that drives `tifffile` itself and records,
@@ -218,7 +232,7 @@ the palette fallback for nameless OME channels, `SamplesPerPixel` expansion, the
 size units, signed-page padding, per-Z tiles of an untiled series, the ImageJ stacks, the
 SubIFD pyramid, all five codecs, the predictor, big-endian and BigTIFF.
 
-### Step 2 — `tiffslide` — **done**
+### 2. `tiffslide`
 
 `wsi_service_base_plugins/tiffslide/.../slide.py`. Structurally openslide's twin, built on
 step 1's reader. The plugin is thin; the work is in reproducing **tiffslide**, which is
@@ -311,7 +325,7 @@ splices an `APP14` "Adobe" segment with transform 0 into such a stream, which is
 tile geometry tiffslide reports is synthesised from the `NDPI_MCU_STARTS` tag. Divergence
 33 has the reasoning. `openslide` serves NDPI pixel-exactly at priority 10.
 
-### Step 3 — `wsidicom` — **done**
+### 3. `wsidicom`
 
 `wsi_service_base_plugins/wsidicom/.../slide.py`, 197 lines. The plugin is as thin as
 `tiffslide`'s; all of the work is in reproducing the `WsiDicom` object underneath it. Read
@@ -414,7 +428,7 @@ openslide plugin serves them through the same libopenslide the Python service us
 is already pixel-exact in the default configuration. Like `tiffslide`, this plugin matters
 for an explicit `plugin=wsidicom` request or a build without libopenslide.
 
-### Step 4 — `nifti` — **done**
+### 4. `nifti`
 
 `crates/wsi-plugin-nifti/`. The `nifti` crate was not used in the end: the plugin needs
 bounded *lazy* reads (`_get_window` scans the whole volume in blocks; a tile reads only its
@@ -448,7 +462,7 @@ Also note `get_thumbnail` ends with `Image.resize(..., LANCZOS)`, and `resize`'s
 `reducing_gap` defaults to `None` — unlike `thumbnail`, which defaults to `2.0`. Passing
 `2.0` here would add a box-average pre-pass Python never runs.
 
-### Step 5 — `mvt` — **done**
+### 5. `mvt`
 
 `crates/wsi-plugin-mvt/`. `rusqlite` with the `bundled` feature for `.mbtiles`, so SQLite
 is compiled in and the runtime image needs no sqlite package; plus directory
@@ -469,14 +483,17 @@ every dataset — it has never served a tile. The port supplies `format = "mvt"`
 divergence 26. Divergence 27 covers the case-insensitive extension match the port has
 always used for `supported_file_extensions` plugins.
 
-### Step 6 — wire up and close out
+### 6. Wiring up
 
-- Register each plugin in `wsi-server/src/lib.rs::build_registry` behind a cargo feature, and
-  enable it in `rust/Dockerfile` and `.github/workflows/rust.yml`.
-- Add each new divergence to `rust/docs/divergences.md` with its Python source line.
-- Update the `rust/README.md` status table and test count.
-- Run the parity harness against the Python service (below) and drive the difference list to
-  zero or to allowlisted entries.
+Each plugin is registered in `wsi-server/src/lib.rs::build_registry` behind a cargo feature
+and enabled in `rust/Dockerfile` and `.github/workflows/rust.yml` — where the `image` job
+asserts every one of the seven appears in `/alive`, which for `openslide` also proves the
+library loaded.
+
+The rule the port was held to, and which anything extending it should keep: a difference the
+parity harness tolerates needs an entry in `rust/docs/divergences.md` naming the Python
+source line it comes from. The allowlist is checked against that document, not against
+convenience.
 
 ---
 
