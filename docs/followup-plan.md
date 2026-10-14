@@ -1,10 +1,10 @@
-# WSI-Service Rust port — implementation notes
+# Tile-chan — implementation notes
 
 ## Context
 
-`rust/` in this repository holds a Rust re-implementation of the Python `wsi_service`,
-intended as a drop-in replacement: same URLs, parameters, status codes, response bodies, and
-pixel-identical images. **It is complete**: all five format plugins are ported, and the
+`rust/` in this repository holds Tile-chan, a Rust re-implementation of the Python
+`wsi_service`, intended as a drop-in replacement: same URLs, parameters, status codes,
+response bodies, and pixel-identical images. **It is complete**: all five format plugins are ported, and the
 differential harness compares the two services clean in three configurations.
 
 This document began as a plan and is now the record. Its most valuable part is *Knowledge

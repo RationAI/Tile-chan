@@ -1,6 +1,6 @@
-# Divergences from the Python service
+# Tile-chan — divergences from the Python service
 
-The Rust port aims to be behaviourally identical to `wsi_service`. This file records every
+Tile-chan aims to be behaviourally identical to `wsi_service`. This file records every
 place it is not, and why. Three categories:
 
 - **Reproduced defect** — the Python behaviour is wrong, but clients may depend on it, so it

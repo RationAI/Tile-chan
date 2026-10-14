@@ -1,8 +1,8 @@
-# WSI-Service (Rust)
+# Tile-chan
 
-A Rust re-implementation of the Python `wsi_service` in this repository. Same URLs, same
-parameters, same status codes, same response bodies — the goal is a drop-in replacement, so
-no client needs to change.
+Tile-chan is a Rust re-implementation of the Python `wsi_service` in this repository. Same
+URLs, same parameters, same status codes, same response bodies — the goal is a drop-in
+replacement, so no client needs to change.
 
 Where the two cannot be identical, or where the Python has a defect worth preserving, it is
 recorded in [`docs/divergences.md`](docs/divergences.md) rather than left to be discovered.
