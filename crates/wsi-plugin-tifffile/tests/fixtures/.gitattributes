@@ -1,0 +1,3 @@
+# The fixtures are byte-exact expectations, so nothing may rewrite their line endings.
+*.tif binary
+*.json -text

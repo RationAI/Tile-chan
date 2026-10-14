@@ -1,0 +1,65 @@
+# Development image: enough C toolchain to build the crates that wrap C libraries.
+#
+# * cmake + nasm   -> turbojpeg-sys builds libjpeg-turbo from source (JPEG parity with Pillow)
+# * pkg-config     -> lets the *-sys crates find system libraries
+# * lcms2-sys      -> vendors Little-CMS and builds it with cc, already in the base image
+# * libopenslide   -> built from source; see below
+FROM rust:1-bookworm
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        cmake \
+        nasm \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- libopenslide -------------------------------------------------------------------------
+#
+# Debian bookworm ships 3.4.1, which predates the ICC profile API
+# (`openslide_get_icc_profile_size` and friends, added in 4.0). The Python service reaches
+# that API through `openslide-python`'s `color_profile`, so the Rust plugin needs it too.
+#
+# The source is the same fork the Python image builds — github.com/iewchen/openslide, the
+# branch behind openslide PR #605 — so both services link the *same* decoder and region
+# pixels match by construction rather than by coincidence.
+#
+# The dependency list mirrors `build_standalone/Dockerfile`. `libdicom` is not packaged for
+# bookworm, but openslide's meson vendors it as a subproject and builds it here, so the
+# DICOM backend ends up enabled — as it does in the Python image, for the same reason.
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        git \
+        meson \
+        ninja-build \
+        zlib1g-dev \
+        libzstd-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libtiff-dev \
+        libopenjp2-7-dev \
+        libgdk-pixbuf-2.0-dev \
+        libxml2-dev \
+        sqlite3 \
+        libsqlite3-dev \
+        libcairo2-dev \
+        libglib2.0-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && git clone --depth 1 https://github.com/iewchen/openslide.git /tmp/openslide \
+    && meson setup /tmp/openslide/builddir /tmp/openslide \
+        --prefix=/usr/local --buildtype=release \
+    && meson compile -C /tmp/openslide/builddir \
+    && meson install -C /tmp/openslide/builddir \
+    && ldconfig \
+    && rm -rf /tmp/openslide
+
+ENV PKG_CONFIG_PATH=/usr/local/lib/x86_64-linux-gnu/pkgconfig:/usr/local/lib/pkgconfig
+ENV LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu:/usr/local/lib
+
+# `rust-toolchain.toml` asks for `stable` plus rustfmt and clippy. The base image pins a
+# specific version as its default, so without this every `docker run` re-resolves `stable`
+# and downloads five components before it compiles anything — minutes per invocation, and
+# a failure whenever static.rust-lang.org is unreachable.
+RUN rustup toolchain install stable --component rustfmt,clippy --profile minimal
+
+WORKDIR /work
+ENV CARGO_TARGET_DIR=/target

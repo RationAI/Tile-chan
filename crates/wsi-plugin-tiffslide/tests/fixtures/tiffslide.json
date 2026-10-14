@@ -1,0 +1,1796 @@
+{
+ "slides": {
+  "Aperio/CMU-1.svs": {
+   "associated_images": {
+    "label": {
+     "mode": "RGB",
+     "samples": [
+      [
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       1,
+       0
+      ],
+      [
+       0,
+       0,
+       0
+      ]
+     ],
+     "size": [
+      387,
+      463
+     ]
+    },
+    "macro": {
+     "mode": "RGB",
+     "samples": [
+      [
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       0
+      ]
+     ],
+     "size": [
+      1280,
+      431
+     ]
+    },
+    "thumbnail": {
+     "mode": "RGB",
+     "samples": [
+      [
+       243,
+       243,
+       243
+      ],
+      [
+       243,
+       243,
+       243
+      ],
+      [
+       244,
+       244,
+       244
+      ]
+     ],
+     "size": [
+      1024,
+      732
+     ]
+    }
+   },
+   "dimensions": [
+    46000,
+    32914
+   ],
+   "format": "aperio",
+   "level_count": 3,
+   "level_dimensions": [
+    [
+     46000,
+     32914
+    ],
+    [
+     11500,
+     8228
+    ],
+    [
+     2875,
+     2057
+    ]
+   ],
+   "level_downsamples": [
+    1.0,
+    4.000121536217793,
+    16.00048614487117
+   ],
+   "profile_length": 141992,
+   "properties": {
+    "aperio.AppMag": 20,
+    "aperio.Date": "12/29/09",
+    "aperio.Filename": "CMU-1",
+    "aperio.Filtered": 5,
+    "aperio.Focus Offset": 0.0,
+    "aperio.Header": "Aperio Image Library v10.0.51\r\n46920x33014 [0,100 46000x32914] (256x256) JPEG/RGB Q=30",
+    "aperio.ICC Profile": "ScanScope v1",
+    "aperio.ImageID": 1004486,
+    "aperio.Left": 25.691574,
+    "aperio.LineAreaXOffset": 0.019265,
+    "aperio.LineAreaYOffset": -0.000313,
+    "aperio.LineCameraSkew": -0.000424,
+    "aperio.MPP": 0.499,
+    "aperio.OriginalWidth": 46920,
+    "aperio.Originalheight": 33014,
+    "aperio.Parmset": "USM Filter",
+    "aperio.ScanScope ID": "CPAPERIOCS",
+    "aperio.StripeWidth": 2040,
+    "aperio.Time": "09:59:15",
+    "aperio.Top": 23.449873,
+    "aperio.User": "b414003d-95c6-48b0-9369-8010ed517ba7",
+    "tiff.ImageDescription": "Aperio Image Library v10.0.51\r\n46920x33014 [0,100 46000x32914] (256x256) JPEG/RGB Q=30|AppMag = 20|StripeWidth = 2040|ScanScope ID = CPAPERIOCS|Filename = CMU-1|Date = 12/29/09|Time = 09:59:15|User = b414003d-95c6-48b0-9369-8010ed517ba7|Parmset = USM Filter|MPP = 0.4990|Left = 25.691574|Top = 23.449873|LineCameraSkew = -0.000424|LineAreaXOffset = 0.019265|LineAreaYOffset = -0.000313|Focus Offset = 0.000000|ImageID = 1004486|OriginalWidth = 46920|Originalheight = 33014|Filtered = 5|ICC Profile = ScanScope v1",
+    "tiffslide.background-color": null,
+    "tiffslide.bounds-height": null,
+    "tiffslide.bounds-width": null,
+    "tiffslide.bounds-x": null,
+    "tiffslide.bounds-y": null,
+    "tiffslide.comment": "Aperio Image Library v10.0.51\r\n46920x33014 [0,100 46000x32914] (256x256) JPEG/RGB Q=30|AppMag = 20|StripeWidth = 2040|ScanScope ID = CPAPERIOCS|Filename = CMU-1|Date = 12/29/09|Time = 09:59:15|User = b414003d-95c6-48b0-9369-8010ed517ba7|Parmset = USM Filter|MPP = 0.4990|Left = 25.691574|Top = 23.449873|LineCameraSkew = -0.000424|LineAreaXOffset = 0.019265|LineAreaYOffset = -0.000313|Focus Offset = 0.000000|ImageID = 1004486|OriginalWidth = 46920|Originalheight = 33014|Filtered = 5|ICC Profile = ScanScope v1",
+    "tiffslide.level[0].downsample": 1.0,
+    "tiffslide.level[0].height": 32914,
+    "tiffslide.level[0].tile-height": 256,
+    "tiffslide.level[0].tile-width": 256,
+    "tiffslide.level[0].width": 46000,
+    "tiffslide.level[1].downsample": 4.000121536217793,
+    "tiffslide.level[1].height": 8228,
+    "tiffslide.level[1].tile-height": 256,
+    "tiffslide.level[1].tile-width": 256,
+    "tiffslide.level[1].width": 11500,
+    "tiffslide.level[2].downsample": 16.00048614487117,
+    "tiffslide.level[2].height": 2057,
+    "tiffslide.level[2].tile-height": 256,
+    "tiffslide.level[2].tile-width": 256,
+    "tiffslide.level[2].width": 2875,
+    "tiffslide.mpp-x": 0.499,
+    "tiffslide.mpp-y": 0.499,
+    "tiffslide.objective-power": 20,
+    "tiffslide.quickhash-1": null,
+    "tiffslide.series-axes": "YXS",
+    "tiffslide.series-index": 0,
+    "tiffslide.vendor": "aperio"
+   },
+   "regions": [
+    {
+     "level": 0,
+     "location": [
+      0,
+      0
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       239,
+       239,
+       239
+      ],
+      "0,15": [
+       239,
+       239,
+       239
+      ],
+      "15,0": [
+       239,
+       239,
+       239
+      ],
+      "15,15": [
+       239,
+       239,
+       239
+      ],
+      "8,8": [
+       239,
+       239,
+       239
+      ]
+     },
+     "shape": [
+      16,
+      16,
+      3
+     ],
+     "size": [
+      16,
+      16
+     ]
+    },
+    {
+     "level": 0,
+     "location": [
+      1000,
+      1000
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       246,
+       246,
+       243
+      ],
+      "0,23": [
+       246,
+       246,
+       243
+      ],
+      "16,12": [
+       246,
+       246,
+       243
+      ],
+      "31,0": [
+       246,
+       246,
+       243
+      ],
+      "31,23": [
+       246,
+       243,
+       243
+      ]
+     },
+     "shape": [
+      24,
+      32,
+      3
+     ],
+     "size": [
+      32,
+      24
+     ]
+    },
+    {
+     "level": 1,
+     "location": [
+      0,
+      0
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       238,
+       239,
+       238
+      ],
+      "0,15": [
+       244,
+       244,
+       244
+      ],
+      "15,0": [
+       242,
+       241,
+       239
+      ],
+      "15,15": [
+       244,
+       244,
+       242
+      ],
+      "8,8": [
+       244,
+       244,
+       242
+      ]
+     },
+     "shape": [
+      16,
+      16,
+      3
+     ],
+     "size": [
+      16,
+      16
+     ]
+    },
+    {
+     "level": 1,
+     "location": [
+      4096,
+      4096
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       245,
+       245,
+       245
+      ],
+      "0,23": [
+       245,
+       245,
+       245
+      ],
+      "16,12": [
+       245,
+       245,
+       245
+      ],
+      "31,0": [
+       245,
+       245,
+       245
+      ],
+      "31,23": [
+       245,
+       245,
+       245
+      ]
+     },
+     "shape": [
+      24,
+      32,
+      3
+     ],
+     "size": [
+      32,
+      24
+     ]
+    }
+   ],
+   "tifffile": {
+    "is_svs": true,
+    "page_count": 6,
+    "pages": [
+     {
+      "compression": 7,
+      "description_head": "Aperio Image Library v10.0.51\r\n46920x33014 [0,100 46000x32914] (256x256) JPEG/RGB Q=30|AppMag = 20|StripeWidth = 2040|ScanScope ID = CPAPERIOCS|Filename = CMU-1",
+      "height": 32914,
+      "index": 0,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 0,
+      "width": 46000
+     },
+     {
+      "compression": 7,
+      "description_head": "Aperio Image Library v10.0.51\n46000x32914 -> 1024x732 - |AppMag = 20|StripeWidth = 2040|ScanScope ID = CPAPERIOCS|Filename = CMU-1|Date = 12/29/09|Time = 09:59:",
+      "height": 732,
+      "index": 1,
+      "is_tiled": false,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 0,
+      "width": 1024
+     },
+     {
+      "compression": 7,
+      "description_head": "Aperio Image Library v10.0.51\r\n46920x33014 [0,100 46000x32914] (256x256) -> 11500x8228 JPEG/RGB Q=65",
+      "height": 8228,
+      "index": 2,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 0,
+      "width": 11500
+     },
+     {
+      "compression": 7,
+      "description_head": "Aperio Image Library v10.0.51\r\n46920x33014 [0,100 46000x32914] (256x256) -> 2875x2057 JPEG/RGB Q=82",
+      "height": 2057,
+      "index": 3,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 0,
+      "width": 2875
+     },
+     {
+      "compression": 5,
+      "description_head": "Aperio Image Library v10.0.51\nlabel 387x463",
+      "height": 463,
+      "index": 4,
+      "is_tiled": false,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 1,
+      "width": 387
+     },
+     {
+      "compression": 7,
+      "description_head": "Aperio Image Library v10.0.51\nmacro 1280x431",
+      "height": 431,
+      "index": 5,
+      "is_tiled": false,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 9,
+      "width": 1280
+     }
+    ],
+    "series": [
+     {
+      "axes": "YXS",
+      "level_count": 3,
+      "level_shapes": [
+       [
+        32914,
+        46000,
+        3
+       ],
+       [
+        8228,
+        11500,
+        3
+       ],
+       [
+        2057,
+        2875,
+        3
+       ]
+      ],
+      "name": "Baseline",
+      "page_indices": [
+       [
+        0
+       ],
+       [
+        2
+       ],
+       [
+        3
+       ]
+      ],
+      "shape": [
+       32914,
+       46000,
+       3
+      ]
+     },
+     {
+      "axes": "YXS",
+      "level_count": 1,
+      "level_shapes": [
+       [
+        732,
+        1024,
+        3
+       ]
+      ],
+      "name": "Thumbnail",
+      "page_indices": [
+       [
+        1
+       ]
+      ],
+      "shape": [
+       732,
+       1024,
+       3
+      ]
+     },
+     {
+      "axes": "YXS",
+      "level_count": 1,
+      "level_shapes": [
+       [
+        463,
+        387,
+        3
+       ]
+      ],
+      "name": "Label",
+      "page_indices": [
+       [
+        4
+       ]
+      ],
+      "shape": [
+       463,
+       387,
+       3
+      ]
+     },
+     {
+      "axes": "YXS",
+      "level_count": 1,
+      "level_shapes": [
+       [
+        431,
+        1280,
+        3
+       ]
+      ],
+      "name": "Macro",
+      "page_indices": [
+       [
+        5
+       ]
+      ],
+      "shape": [
+       431,
+       1280,
+       3
+      ]
+     }
+    ]
+   }
+  },
+  "Generic TIFF/CMU-1.tiff": {
+   "associated_images": {},
+   "dimensions": [
+    46000,
+    32914
+   ],
+   "format": "generic-tiff",
+   "level_count": 10,
+   "level_dimensions": [
+    [
+     46000,
+     32914
+    ],
+    [
+     23000,
+     16457
+    ],
+    [
+     11500,
+     8228
+    ],
+    [
+     5750,
+     4114
+    ],
+    [
+     2875,
+     2057
+    ],
+    [
+     1437,
+     1028
+    ],
+    [
+     718,
+     514
+    ],
+    [
+     359,
+     257
+    ],
+    [
+     179,
+     128
+    ],
+    [
+     89,
+     64
+    ]
+   ],
+   "level_downsamples": [
+    1.0,
+    2.0,
+    4.000121536217793,
+    8.000243072435586,
+    16.00048614487117,
+    32.01432201760585,
+    64.05093591147048,
+    128.10187182294095,
+    257.06193261173183,
+    515.5675912921348
+   ],
+   "profile_length": null,
+   "properties": {
+    "tiff.ImageDescription": "",
+    "tiff.ResolutionUnit": "CENTIMETER",
+    "tiff.XResolution": 200400.0,
+    "tiff.YResolution": 200400.0,
+    "tiffslide.background-color": null,
+    "tiffslide.bounds-height": null,
+    "tiffslide.bounds-width": null,
+    "tiffslide.bounds-x": null,
+    "tiffslide.bounds-y": null,
+    "tiffslide.comment": null,
+    "tiffslide.level[0].downsample": 1.0,
+    "tiffslide.level[0].height": 32914,
+    "tiffslide.level[0].tile-height": 128,
+    "tiffslide.level[0].tile-width": 128,
+    "tiffslide.level[0].width": 46000,
+    "tiffslide.level[1].downsample": 2.0,
+    "tiffslide.level[1].height": 16457,
+    "tiffslide.level[1].tile-height": 128,
+    "tiffslide.level[1].tile-width": 128,
+    "tiffslide.level[1].width": 23000,
+    "tiffslide.level[2].downsample": 4.000121536217793,
+    "tiffslide.level[2].height": 8228,
+    "tiffslide.level[2].tile-height": 128,
+    "tiffslide.level[2].tile-width": 128,
+    "tiffslide.level[2].width": 11500,
+    "tiffslide.level[3].downsample": 8.000243072435586,
+    "tiffslide.level[3].height": 4114,
+    "tiffslide.level[3].tile-height": 128,
+    "tiffslide.level[3].tile-width": 128,
+    "tiffslide.level[3].width": 5750,
+    "tiffslide.level[4].downsample": 16.00048614487117,
+    "tiffslide.level[4].height": 2057,
+    "tiffslide.level[4].tile-height": 128,
+    "tiffslide.level[4].tile-width": 128,
+    "tiffslide.level[4].width": 2875,
+    "tiffslide.level[5].downsample": 32.01432201760585,
+    "tiffslide.level[5].height": 1028,
+    "tiffslide.level[5].tile-height": 128,
+    "tiffslide.level[5].tile-width": 128,
+    "tiffslide.level[5].width": 1437,
+    "tiffslide.level[6].downsample": 64.05093591147048,
+    "tiffslide.level[6].height": 514,
+    "tiffslide.level[6].tile-height": 128,
+    "tiffslide.level[6].tile-width": 128,
+    "tiffslide.level[6].width": 718,
+    "tiffslide.level[7].downsample": 128.10187182294095,
+    "tiffslide.level[7].height": 257,
+    "tiffslide.level[7].tile-height": 128,
+    "tiffslide.level[7].tile-width": 128,
+    "tiffslide.level[7].width": 359,
+    "tiffslide.level[8].downsample": 257.06193261173183,
+    "tiffslide.level[8].height": 128,
+    "tiffslide.level[8].tile-height": 128,
+    "tiffslide.level[8].tile-width": 128,
+    "tiffslide.level[8].width": 179,
+    "tiffslide.level[9].downsample": 515.5675912921348,
+    "tiffslide.level[9].height": 64,
+    "tiffslide.level[9].tile-height": 128,
+    "tiffslide.level[9].tile-width": 128,
+    "tiffslide.level[9].width": 89,
+    "tiffslide.mpp-x": 0.0499001996007984,
+    "tiffslide.mpp-y": 0.0499001996007984,
+    "tiffslide.objective-power": null,
+    "tiffslide.quickhash-1": null,
+    "tiffslide.series-axes": "YXS",
+    "tiffslide.series-index": 0,
+    "tiffslide.vendor": null
+   },
+   "regions": [
+    {
+     "level": 0,
+     "location": [
+      0,
+      0
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       239,
+       239,
+       239
+      ],
+      "0,15": [
+       239,
+       239,
+       239
+      ],
+      "15,0": [
+       239,
+       239,
+       239
+      ],
+      "15,15": [
+       239,
+       239,
+       239
+      ],
+      "8,8": [
+       239,
+       239,
+       239
+      ]
+     },
+     "shape": [
+      16,
+      16,
+      3
+     ],
+     "size": [
+      16,
+      16
+     ]
+    },
+    {
+     "level": 0,
+     "location": [
+      1000,
+      1000
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       246,
+       246,
+       243
+      ],
+      "0,23": [
+       246,
+       246,
+       243
+      ],
+      "16,12": [
+       246,
+       246,
+       243
+      ],
+      "31,0": [
+       246,
+       246,
+       243
+      ],
+      "31,23": [
+       246,
+       243,
+       243
+      ]
+     },
+     "shape": [
+      24,
+      32,
+      3
+     ],
+     "size": [
+      32,
+      24
+     ]
+    },
+    {
+     "level": 1,
+     "location": [
+      0,
+      0
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       239,
+       239,
+       239
+      ],
+      "0,15": [
+       242,
+       243,
+       239
+      ],
+      "15,0": [
+       239,
+       239,
+       239
+      ],
+      "15,15": [
+       243,
+       243,
+       243
+      ],
+      "8,8": [
+       243,
+       243,
+       238
+      ]
+     },
+     "shape": [
+      16,
+      16,
+      3
+     ],
+     "size": [
+      16,
+      16
+     ]
+    },
+    {
+     "level": 1,
+     "location": [
+      4096,
+      4096
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       246,
+       246,
+       246
+      ],
+      "0,23": [
+       246,
+       246,
+       246
+      ],
+      "16,12": [
+       246,
+       246,
+       246
+      ],
+      "31,0": [
+       246,
+       246,
+       246
+      ],
+      "31,23": [
+       246,
+       246,
+       246
+      ]
+     },
+     "shape": [
+      24,
+      32,
+      3
+     ],
+     "size": [
+      32,
+      24
+     ]
+    }
+   ],
+   "tifffile": {
+    "is_svs": false,
+    "page_count": 10,
+    "pages": [
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 32914,
+      "index": 0,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 0,
+      "width": 46000
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 16457,
+      "index": 1,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 1,
+      "width": 23000
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 8228,
+      "index": 2,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 1,
+      "width": 11500
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 4114,
+      "index": 3,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 1,
+      "width": 5750
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 2057,
+      "index": 4,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 1,
+      "width": 2875
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 1028,
+      "index": 5,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 1,
+      "width": 1437
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 514,
+      "index": 6,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 1,
+      "width": 718
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 257,
+      "index": 7,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 1,
+      "width": 359
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 128,
+      "index": 8,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 1,
+      "width": 179
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 64,
+      "index": 9,
+      "is_tiled": true,
+      "ndpi_tags": {},
+      "photometric": 2,
+      "software": "",
+      "subfiletype": 1,
+      "width": 89
+     }
+    ],
+    "series": [
+     {
+      "axes": "YXS",
+      "level_count": 10,
+      "level_shapes": [
+       [
+        32914,
+        46000,
+        3
+       ],
+       [
+        16457,
+        23000,
+        3
+       ],
+       [
+        8228,
+        11500,
+        3
+       ],
+       [
+        4114,
+        5750,
+        3
+       ],
+       [
+        2057,
+        2875,
+        3
+       ],
+       [
+        1028,
+        1437,
+        3
+       ],
+       [
+        514,
+        718,
+        3
+       ],
+       [
+        257,
+        359,
+        3
+       ],
+       [
+        128,
+        179,
+        3
+       ],
+       [
+        64,
+        89,
+        3
+       ]
+      ],
+      "name": "",
+      "page_indices": [
+       [
+        0
+       ],
+       [
+        1
+       ],
+       [
+        2
+       ],
+       [
+        3
+       ],
+       [
+        4
+       ],
+       [
+        5
+       ],
+       [
+        6
+       ],
+       [
+        7
+       ],
+       [
+        8
+       ],
+       [
+        9
+       ]
+      ],
+      "shape": [
+       32914,
+       46000,
+       3
+      ]
+     }
+    ]
+   }
+  },
+  "Hamamatsu/OS-1.ndpi": {
+   "associated_images": {
+    "macro": {
+     "mode": "RGB",
+     "samples": [
+      [
+       67,
+       67,
+       67
+      ],
+      [
+       123,
+       123,
+       123
+      ],
+      [
+       123,
+       123,
+       123
+      ]
+     ],
+     "size": [
+      1160,
+      396
+     ]
+    },
+    "map": {
+     "mode": "L",
+     "samples": [
+      [
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       0
+      ]
+     ],
+     "size": [
+      580,
+      198
+     ]
+    }
+   },
+   "dimensions": [
+    122880,
+    110592
+   ],
+   "format": "hamamatsu",
+   "level_count": 10,
+   "level_dimensions": [
+    [
+     122880,
+     110592
+    ],
+    [
+     61440,
+     55296
+    ],
+    [
+     30720,
+     27648
+    ],
+    [
+     15360,
+     13824
+    ],
+    [
+     7680,
+     6912
+    ],
+    [
+     3840,
+     3456
+    ],
+    [
+     1920,
+     1728
+    ],
+    [
+     960,
+     864
+    ],
+    [
+     480,
+     432
+    ],
+    [
+     240,
+     216
+    ]
+   ],
+   "level_downsamples": [
+    1.0,
+    2.0,
+    4.0,
+    8.0,
+    16.0,
+    32.0,
+    64.0,
+    128.0,
+    256.0,
+    512.0
+   ],
+   "profile_length": null,
+   "properties": {
+    "hamamatsu.Model": "C12000-02",
+    "hamamatsu.SourceLens": 40.0,
+    "hamamatsu.XOffsetFromSlideCentre": 12644827,
+    "hamamatsu.YOffsetFromSlideCentre": 57700,
+    "tiff.ImageDescription": "",
+    "tiff.ResolutionUnit": "CENTIMETER",
+    "tiff.XResolution": 44034.0,
+    "tiff.YResolution": 44033.0,
+    "tiffslide.background-color": null,
+    "tiffslide.bounds-height": null,
+    "tiffslide.bounds-width": null,
+    "tiffslide.bounds-x": null,
+    "tiffslide.bounds-y": null,
+    "tiffslide.comment": null,
+    "tiffslide.level[0].downsample": 1.0,
+    "tiffslide.level[0].height": 110592,
+    "tiffslide.level[0].tile-height": 8,
+    "tiffslide.level[0].tile-width": 4096,
+    "tiffslide.level[0].width": 122880,
+    "tiffslide.level[1].downsample": 2.0,
+    "tiffslide.level[1].height": 55296,
+    "tiffslide.level[1].tile-height": 8,
+    "tiffslide.level[1].tile-width": 2048,
+    "tiffslide.level[1].width": 61440,
+    "tiffslide.level[2].downsample": 4.0,
+    "tiffslide.level[2].height": 27648,
+    "tiffslide.level[2].tile-height": 8,
+    "tiffslide.level[2].tile-width": 1024,
+    "tiffslide.level[2].width": 30720,
+    "tiffslide.level[3].downsample": 8.0,
+    "tiffslide.level[3].height": 13824,
+    "tiffslide.level[3].tile-height": 8,
+    "tiffslide.level[3].tile-width": 512,
+    "tiffslide.level[3].width": 15360,
+    "tiffslide.level[4].downsample": 16.0,
+    "tiffslide.level[4].height": 6912,
+    "tiffslide.level[4].tile-height": 8,
+    "tiffslide.level[4].tile-width": 256,
+    "tiffslide.level[4].width": 7680,
+    "tiffslide.level[5].downsample": 32.0,
+    "tiffslide.level[5].height": 3456,
+    "tiffslide.level[5].tile-height": 8,
+    "tiffslide.level[5].tile-width": 128,
+    "tiffslide.level[5].width": 3840,
+    "tiffslide.level[6].downsample": 64.0,
+    "tiffslide.level[6].height": 1728,
+    "tiffslide.level[6].tile-height": 8,
+    "tiffslide.level[6].tile-width": 64,
+    "tiffslide.level[6].width": 1920,
+    "tiffslide.level[7].downsample": 128.0,
+    "tiffslide.level[7].height": 864,
+    "tiffslide.level[7].tile-height": 8,
+    "tiffslide.level[7].tile-width": 32,
+    "tiffslide.level[7].width": 960,
+    "tiffslide.level[8].downsample": 256.0,
+    "tiffslide.level[8].height": 432,
+    "tiffslide.level[8].tile-height": 8,
+    "tiffslide.level[8].tile-width": 16,
+    "tiffslide.level[8].width": 480,
+    "tiffslide.level[9].downsample": 512.0,
+    "tiffslide.level[9].height": 216,
+    "tiffslide.level[9].tile-height": 8,
+    "tiffslide.level[9].tile-width": 8,
+    "tiffslide.level[9].width": 240,
+    "tiffslide.mpp-x": 0.2270972430394695,
+    "tiffslide.mpp-y": 0.22710240047237298,
+    "tiffslide.objective-power": 40.0,
+    "tiffslide.quickhash-1": null,
+    "tiffslide.series-axes": "YXS",
+    "tiffslide.series-index": 0,
+    "tiffslide.vendor": "hamamatsu"
+   },
+   "regions": [
+    {
+     "level": 0,
+     "location": [
+      0,
+      0
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       218,
+       221,
+       226
+      ],
+      "0,15": [
+       219,
+       220,
+       225
+      ],
+      "15,0": [
+       217,
+       220,
+       225
+      ],
+      "15,15": [
+       219,
+       220,
+       225
+      ],
+      "8,8": [
+       219,
+       220,
+       225
+      ]
+     },
+     "shape": [
+      16,
+      16,
+      3
+     ],
+     "size": [
+      16,
+      16
+     ]
+    },
+    {
+     "level": 0,
+     "location": [
+      1000,
+      1000
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       128,
+       135,
+       128
+      ],
+      "0,23": [
+       106,
+       111,
+       104
+      ],
+      "16,12": [
+       121,
+       126,
+       119
+      ],
+      "31,0": [
+       127,
+       134,
+       127
+      ],
+      "31,23": [
+       108,
+       113,
+       106
+      ]
+     },
+     "shape": [
+      24,
+      32,
+      3
+     ],
+     "size": [
+      32,
+      24
+     ]
+    },
+    {
+     "level": 1,
+     "location": [
+      0,
+      0
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       216,
+       221,
+       225
+      ],
+      "0,15": [
+       219,
+       220,
+       225
+      ],
+      "15,0": [
+       217,
+       220,
+       225
+      ],
+      "15,15": [
+       215,
+       218,
+       225
+      ],
+      "8,8": [
+       216,
+       219,
+       226
+      ]
+     },
+     "shape": [
+      16,
+      16,
+      3
+     ],
+     "size": [
+      16,
+      16
+     ]
+    },
+    {
+     "level": 1,
+     "location": [
+      4096,
+      4096
+     ],
+     "mode": "RGB",
+     "samples": {
+      "0,0": [
+       223,
+       224,
+       229
+      ],
+      "0,23": [
+       221,
+       222,
+       226
+      ],
+      "16,12": [
+       214,
+       217,
+       224
+      ],
+      "31,0": [
+       223,
+       222,
+       228
+      ],
+      "31,23": [
+       226,
+       225,
+       231
+      ]
+     },
+     "shape": [
+      24,
+      32,
+      3
+     ],
+     "size": [
+      32,
+      24
+     ]
+    }
+   ],
+   "tifffile": {
+    "is_svs": false,
+    "page_count": 12,
+    "pages": [
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 110592,
+      "index": 0,
+      "is_tiled": true,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "40.0",
+       "65422": "12644827",
+       "65423": "57700",
+       "65424": "0",
+       "65425": "0",
+       "65426": "[       660       2009       3510 ... 1423172097 1423173384 1423174738]"
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 122880
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 55296,
+      "index": 1,
+      "is_tiled": true,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "20.0",
+       "65422": "12644827",
+       "65423": "57700",
+       "65424": "0",
+       "65425": "0",
+       "65426": "[      660      1253      1908 ... 408791785 408792313 408792845]"
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 61440
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 27648,
+      "index": 2,
+      "is_tiled": true,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "10.0",
+       "65422": "12644827",
+       "65423": "57700",
+       "65424": "0",
+       "65425": "0",
+       "65426": "[      660       937      1274 ... 112842796 112843037 112843270]"
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 30720
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 13824,
+      "index": 3,
+      "is_tiled": true,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "5.0",
+       "65422": "12644827",
+       "65423": "57700",
+       "65424": "0",
+       "65425": "0",
+       "65426": "[     660      802      990 ... 31556230 31556350 31556468]"
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 15360
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 6912,
+      "index": 4,
+      "is_tiled": true,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "2.5",
+       "65422": "12644827",
+       "65423": "57700",
+       "65424": "0",
+       "65425": "0",
+       "65426": "[    660     749     873 ... 9011265 9011327 9011388]"
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 7680
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 3456,
+      "index": 5,
+      "is_tiled": true,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "1.25",
+       "65422": "12644827",
+       "65423": "57700",
+       "65424": "0",
+       "65425": "0",
+       "65426": "[    660     733     813 ... 2472241 2472285 2472334]"
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 3840
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 1728,
+      "index": 6,
+      "is_tiled": true,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "0.625",
+       "65422": "12644827",
+       "65423": "57700",
+       "65424": "0",
+       "65425": "0",
+       "65426": "[   660    769    876 ... 654180 654222 654264]"
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 1920
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 864,
+      "index": 7,
+      "is_tiled": true,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "0.3125",
+       "65422": "12644827",
+       "65423": "57700",
+       "65424": "0",
+       "65425": "0",
+       "65426": "[   660    730    796 ... 174502 174533 174565]"
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 960
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 432,
+      "index": 8,
+      "is_tiled": true,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "0.15625",
+       "65422": "12644827",
+       "65423": "57700",
+       "65424": "0",
+       "65425": "0",
+       "65426": "[  660   697   737 ... 48725 48749 48771]"
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 480
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 216,
+      "index": 9,
+      "is_tiled": true,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "0.078125",
+       "65422": "12644827",
+       "65423": "57700",
+       "65424": "0",
+       "65425": "0",
+       "65426": "[  660   680   700   732   762   785   807   835   865   885   907   925\n   941 "
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 240
+     },
+     {
+      "compression": 7,
+      "description_head": "",
+      "height": 396,
+      "index": 10,
+      "is_tiled": false,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "-1.0",
+       "65422": "0",
+       "65423": "0"
+      },
+      "photometric": 6,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 1160
+     },
+     {
+      "compression": 1,
+      "description_head": "",
+      "height": 198,
+      "index": 11,
+      "is_tiled": false,
+      "ndpi_tags": {
+       "65420": "1",
+       "65421": "-2.0",
+       "65422": "0",
+       "65423": "0"
+      },
+      "photometric": 1,
+      "software": "NDP.scan 3.0.4",
+      "subfiletype": 0,
+      "width": 580
+     }
+    ],
+    "series": [
+     {
+      "axes": "YXS",
+      "level_count": 10,
+      "level_shapes": [
+       [
+        110592,
+        122880,
+        3
+       ],
+       [
+        55296,
+        61440,
+        3
+       ],
+       [
+        27648,
+        30720,
+        3
+       ],
+       [
+        13824,
+        15360,
+        3
+       ],
+       [
+        6912,
+        7680,
+        3
+       ],
+       [
+        3456,
+        3840,
+        3
+       ],
+       [
+        1728,
+        1920,
+        3
+       ],
+       [
+        864,
+        960,
+        3
+       ],
+       [
+        432,
+        480,
+        3
+       ],
+       [
+        216,
+        240,
+        3
+       ]
+      ],
+      "name": "Baseline",
+      "page_indices": [
+       [
+        0
+       ],
+       [
+        1
+       ],
+       [
+        2
+       ],
+       [
+        3
+       ],
+       [
+        4
+       ],
+       [
+        5
+       ],
+       [
+        6
+       ],
+       [
+        7
+       ],
+       [
+        8
+       ],
+       [
+        9
+       ]
+      ],
+      "shape": [
+       110592,
+       122880,
+       3
+      ]
+     },
+     {
+      "axes": "YXS",
+      "level_count": 1,
+      "level_shapes": [
+       [
+        396,
+        1160,
+        3
+       ]
+      ],
+      "name": "Macro",
+      "page_indices": [
+       [
+        10
+       ]
+      ],
+      "shape": [
+       396,
+       1160,
+       3
+      ]
+     },
+     {
+      "axes": "YX",
+      "level_count": 1,
+      "level_shapes": [
+       [
+        198,
+        580
+       ]
+      ],
+      "name": "Map",
+      "page_indices": [
+       [
+        11
+       ]
+      ],
+      "shape": [
+       198,
+       580
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "tiffslide_version": "4.0.0"
+}

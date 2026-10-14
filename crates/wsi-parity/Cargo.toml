@@ -1,0 +1,24 @@
+[package]
+name = "wsi-parity"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "wsi-parity"
+path = "src/main.rs"
+
+[dependencies]
+# The passthrough endpoints gzip unconditionally, and two gzip encoders are not expected to
+# agree byte for byte, so the harness decodes before comparing.
+flate2.workspace = true
+# `/v3/slides/download` streams a whole slide file; the body is read as a capped stream
+# rather than buffered.
+futures.workspace = true
+image.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+zip.workspace = true

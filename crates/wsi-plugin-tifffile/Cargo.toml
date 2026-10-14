@@ -1,0 +1,28 @@
+[package]
+name = "wsi-plugin-tifffile"
+# Tracks the Python plugin's version, because `/alive` reports it and the parity harness
+# compares that response.
+version = "0.4.3"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+bytes.workspace = true
+flate2.workspace = true
+image.workspace = true
+ndarray.workspace = true
+parking_lot.workspace = true
+quick-xml.workspace = true
+ruzstd.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+weezl.workspace = true
+wsi-core.workspace = true
+
+[dev-dependencies]
+base64.workspace = true
+http.workspace = true
+serde_json.workspace = true
+tokio = { workspace = true }

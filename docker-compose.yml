@@ -1,0 +1,58 @@
+# Mirrors the Python service's compose file, so the same `.env` drives either one.
+#
+# `docker compose up` brings up the Rust service alone. To run both side by side for the
+# parity harness, add the Python service with `--profile parity`; it binds a second port
+# and reads the same data directory.
+version: "3.8"
+
+services:
+  wsi_service:
+    build:
+      context: "."
+      dockerfile: "Dockerfile"
+      target: runtime
+      network: "${COMPOSE_NETWORK:-default}"
+    restart: "${COMPOSE_RESTART:-no}"
+    environment:
+      - WS_CORS_ALLOW_CREDENTIALS=${WS_CORS_ALLOW_CREDENTIALS:-False}
+      - WS_CORS_ALLOW_ORIGINS=${WS_CORS_ALLOW_ORIGINS:-["*"]}
+      - WS_DEBUG=${WS_DEBUG:-False}
+      - WS_DISABLE_OPENAPI=${WS_DISABLE_OPENAPI:-False}
+      - WS_MAPPER_ADDRESS=${WS_MAPPER_ADDRESS:-}
+      - WS_LOCAL_MODE=${WS_LOCAL_MODE:-wsi_service.paths_mapper:PathsMapper}
+      - WS_ENABLE_VIEWER_ROUTES=${WS_ENABLE_VIEWER_ROUTES:-True}
+      - WS_INACTIVE_HISTO_IMAGE_TIMEOUT_SECONDS=${WS_INACTIVE_HISTO_IMAGE_TIMEOUT_SECONDS:-600}
+      - WS_IMAGE_HANDLE_CACHE_SIZE=${WS_IMAGE_HANDLE_CACHE_SIZE:-50}
+      - WS_MAX_RETURNED_REGION_SIZE=${WS_MAX_RETURNED_REGION_SIZE:-25000000}
+      - WS_MAX_THUMBNAIL_SIZE=${WS_MAX_THUMBNAIL_SIZE:-500}
+      - WS_GET_TILE_APPLY_PADDING=${WS_GET_TILE_APPLY_PADDING:-False}
+      # Auth
+      - WS_API_V3_INTEGRATION=${WS_API_V3_INTEGRATION:-wsi_service.api.v3.integrations.disable_auth:DisableAuth}
+      - WS_IDP_URL=${WS_IDP_URL:-}
+      - WS_CLIENT_ID=${WS_CLIENT_ID:-}
+      - WS_CLIENT_SECRET=${WS_CLIENT_SECRET:-}
+      - WS_ORGANIZATION_ID=${WS_ORGANIZATION_ID:-}
+    volumes:
+      - ${COMPOSE_DATA_DIR:-./data}:/data:ro
+    ports:
+      - "${COMPOSE_WS_PORT:-8080}:8080"
+
+  # The Python service, for differential testing. Started only with
+  #   docker compose --profile parity up
+  wsi_service_python:
+    profiles: ["parity"]
+    build:
+      context: ".."
+      dockerfile: "build_standalone/Dockerfile"
+      target: wsi_service_production
+    environment:
+      - WS_CORS_ALLOW_ORIGINS=["*"]
+      - WS_LOCAL_MODE=${WS_LOCAL_MODE:-wsi_service.paths_mapper:PathsMapper}
+      - WS_API_V3_INTEGRATION=wsi_service.api.v3.integrations.disable_auth:DisableAuth
+      - WS_MAX_RETURNED_REGION_SIZE=${WS_MAX_RETURNED_REGION_SIZE:-25000000}
+      - WS_MAX_THUMBNAIL_SIZE=${WS_MAX_THUMBNAIL_SIZE:-500}
+      - WS_GET_TILE_APPLY_PADDING=${WS_GET_TILE_APPLY_PADDING:-False}
+    volumes:
+      - ${COMPOSE_DATA_DIR:-./data}:/data:ro
+    ports:
+      - "${COMPOSE_WS_PYTHON_PORT:-8081}:8080"

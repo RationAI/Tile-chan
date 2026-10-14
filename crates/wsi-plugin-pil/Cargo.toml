@@ -1,0 +1,18 @@
+[package]
+name = "wsi-plugin-pil"
+version = "0.4.2"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+bytes.workspace = true
+image.workspace = true
+parking_lot.workspace = true
+tokio.workspace = true
+wsi-core.workspace = true
+
+[dev-dependencies]
+http.workspace = true
+tokio = { workspace = true }

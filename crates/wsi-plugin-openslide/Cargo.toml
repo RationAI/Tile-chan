@@ -1,0 +1,25 @@
+[package]
+name = "wsi-plugin-openslide"
+version = "1.4.2"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+# The C library is located with pkg-config; see build.rs.
+links = "openslide"
+build = "build.rs"
+
+[dependencies]
+async-trait.workspace = true
+bytes.workspace = true
+image.workspace = true
+parking_lot.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+wsi-core.workspace = true
+
+[build-dependencies]
+pkg-config = "0.3"
+
+[dev-dependencies]
+http.workspace = true
+tokio = { workspace = true }

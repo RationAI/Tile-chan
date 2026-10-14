@@ -1,0 +1,42 @@
+[package]
+name = "wsi-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[features]
+# libjpeg-turbo is the same encoder Pillow links against, so JPEG output matches the
+# Python service bit for bit. Disable to build without a C toolchain, at the cost of
+# JPEG parity (see docs/divergences.md).
+default = ["jpeg-turbo"]
+jpeg-turbo = ["dep:turbojpeg"]
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+axum.workspace = true
+bytes.workspace = true
+dotenvy.workspace = true
+flate2.workspace = true
+glob.workspace = true
+http.workspace = true
+image.workspace = true
+lcms2.workspace = true
+lru.workspace = true
+ndarray.workspace = true
+parking_lot.workspace = true
+regex.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+zip.workspace = true
+
+turbojpeg = { version = "1", features = ["image"], optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true }

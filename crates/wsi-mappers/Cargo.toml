@@ -1,0 +1,20 @@
+[package]
+name = "wsi-mappers"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+glob.workspace = true
+regex.workspace = true
+parking_lot.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+wsi-core.workspace = true
+
+[dev-dependencies]
+http.workspace = true

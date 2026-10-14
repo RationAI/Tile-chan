@@ -1,0 +1,25 @@
+[package]
+name = "wsi-plugin-tiffslide"
+# Tracks the Python plugin's version, because `/alive` reports it and the parity harness
+# compares that response.
+version = "0.2.3"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+bytes.workspace = true
+image.workspace = true
+parking_lot.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+wsi-core.workspace = true
+# The TIFF reader built for the `tifffile` plugin: directories, BigTIFF, SubIFDs and
+# per-chunk decoding are exactly what a tiffslide emulation needs too.
+wsi-plugin-tifffile.workspace = true
+
+[dev-dependencies]
+http.workspace = true
+serde_json.workspace = true
+tokio = { workspace = true }

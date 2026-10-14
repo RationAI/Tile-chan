@@ -1,0 +1,55 @@
+[package]
+name = "wsi-server"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[features]
+# `openslide` needs libopenslide >= 4.0 at build time, so it is opt-in for a bare
+# `cargo build`; the Docker images enable it.
+default = ["pil", "nifti", "mvt", "tifffile", "tiffslide", "wsidicom"]
+pil = ["dep:wsi-plugin-pil"]
+nifti = ["dep:wsi-plugin-nifti"]
+mvt = ["dep:wsi-plugin-mvt"]
+tifffile = ["dep:wsi-plugin-tifffile"]
+tiffslide = ["dep:wsi-plugin-tiffslide"]
+wsidicom = ["dep:wsi-plugin-wsidicom"]
+openslide = ["dep:wsi-plugin-openslide"]
+
+[dependencies]
+async-trait.workspace = true
+axum.workspace = true
+bytes.workspace = true
+crc32fast.workspace = true
+futures.workspace = true
+glob.workspace = true
+http.workspace = true
+image.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+zip.workspace = true
+
+wsi-auth.workspace = true
+wsi-core.workspace = true
+wsi-mappers.workspace = true
+wsi-plugin-pil = { workspace = true, optional = true }
+wsi-plugin-nifti = { workspace = true, optional = true }
+wsi-plugin-mvt = { workspace = true, optional = true }
+wsi-plugin-tifffile = { workspace = true, optional = true }
+wsi-plugin-tiffslide = { workspace = true, optional = true }
+wsi-plugin-wsidicom = { workspace = true, optional = true }
+wsi-plugin-openslide = { workspace = true, optional = true }
+
+dotenvy.workspace = true
+
+[dev-dependencies]
+ndarray.workspace = true
+tokio = { workspace = true }
