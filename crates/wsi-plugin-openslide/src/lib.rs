@@ -56,8 +56,18 @@ const PROPERTY_MPP_Y: &str = "openslide.mpp-y";
 const PROPERTY_TILE_WIDTH: &str = "openslide.level[0].tile-width";
 const PROPERTY_TILE_HEIGHT: &str = "openslide.level[0].tile-height";
 
+/// `openslide.vendor` for a TIFF with no recognised vendor backend.
+const GENERIC_TIFF_VENDOR: &str = "generic-tiff";
+
 /// Default tile extent when the slide does not advertise one — `slide.py:188`.
 const DEFAULT_TILE_SIZE: i64 = 256;
+
+/// Reported when the file records no pixel size — the same sentinel `pil` and `mvt` use.
+const UNKNOWN_PIXEL_SIZE_NM: SlidePixelSizeNm = SlidePixelSizeNm {
+    x: -1.0,
+    y: -1.0,
+    z: None,
+};
 
 pub struct OpenSlidePlugin {
     settings: Arc<Settings>,
@@ -168,6 +178,20 @@ impl OpenSlideSlide {
         let slide = OpenSlide::open(&path)?;
         // `detect_format` is called on the adapted path, after opening.
         let format = ffi::detect_vendor(&path);
+
+        // Divergence from Python: a plain TIFF is handed back to the chain, so `tifffile`
+        // and `tiffslide` get it. libopenslide's generic-TIFF backend exposes only the
+        // first IFD — it reports `num_levels` 1 for a five-level pyramid — and flattens
+        // every page to 8-bit RGB, losing a 16-bit or multi-channel image outright.
+        // Python never noticed because `__get_pixel_size` raised on most of these files
+        // anyway; now that a missing pixel size is no longer fatal, openslide would
+        // otherwise win them all on priority. See `docs/divergences.md`, divergence 39.
+        if format.as_deref() == Some(GENERIC_TIFF_VENDOR) {
+            return Err(ApiError::not_found(
+                "Plain TIFF is served by the tifffile and tiffslide plugins.",
+            ));
+        }
+
         let icc_profile = slide.icc_profile()?;
 
         let info = build_slide_info(&slide, format)?;
@@ -380,28 +404,32 @@ fn gather_slide_info(slide: &OpenSlide, format: Option<String>) -> Result<SlideI
 }
 
 /// `__get_pixel_size` — `slide.py:160`.
+///
+/// Divergence from Python, which raises on every branch that cannot produce a size and so
+/// turns an otherwise readable slide into a 404. A slide whose pixel size is simply not
+/// recorded reports `UNKNOWN_PIXEL_SIZE_NM`, the `-1` the `pil` and `mvt` plugins already
+/// use for "unknown". See `docs/divergences.md`, divergence 39.
 fn pixel_size(slide: &OpenSlide) -> Result<SlidePixelSizeNm> {
     let vendor = slide.property(PROPERTY_VENDOR)?.unwrap_or_default();
 
-    if vendor == "generic-tiff" {
+    if vendor == GENERIC_TIFF_VENDOR {
         // A plain TIFF has no MPP, so the resolution tags are used — but only when they
         // are per centimetre.
         let unit = slide.property("tiff.ResolutionUnit")?.unwrap_or_default();
         if unit != "centimeter" {
-            return Err(ApiError::not_found(
-                "Unable to extract pixel size from metadata.",
-            ));
+            return Ok(UNKNOWN_PIXEL_SIZE_NM);
         }
         let (Some(x_resolution), Some(y_resolution)) = (
             slide.property("tiff.XResolution")?,
             slide.property("tiff.YResolution")?,
         ) else {
-            return Err(ApiError::not_found(
-                "Generic tiff file is missing valid values for x and y resolution.",
-            ));
+            return Ok(UNKNOWN_PIXEL_SIZE_NM);
         };
         let pixels_per_cm_x = parse_float(&x_resolution)?;
         let pixels_per_cm_y = parse_float(&y_resolution)?;
+        if pixels_per_cm_x == 0.0 || pixels_per_cm_y == 0.0 {
+            return Ok(UNKNOWN_PIXEL_SIZE_NM);
+        }
         // 1 cm is 1e7 nm.
         return Ok(SlidePixelSizeNm::xy(
             1e7 / pixels_per_cm_x,
@@ -410,23 +438,20 @@ fn pixel_size(slide: &OpenSlide) -> Result<SlidePixelSizeNm> {
     }
 
     if SUPPORTED_VENDORS.contains(&vendor.as_str()) {
-        // A missing mpp property raises KeyError in Python, which the caller reports as
-        // "Failed to gather slide infos".
-        let mpp_x = slide
-            .property(PROPERTY_MPP_X)?
-            .ok_or_else(|| ApiError::internal(format!("KeyError('{PROPERTY_MPP_X}')")))?;
-        let mpp_y = slide
-            .property(PROPERTY_MPP_Y)?
-            .ok_or_else(|| ApiError::internal(format!("KeyError('{PROPERTY_MPP_Y}')")))?;
+        // Python raises KeyError here and reports "Failed to gather slide infos".
+        let (Some(mpp_x), Some(mpp_y)) = (
+            slide.property(PROPERTY_MPP_X)?,
+            slide.property(PROPERTY_MPP_Y)?,
+        ) else {
+            return Ok(UNKNOWN_PIXEL_SIZE_NM);
+        };
         return Ok(SlidePixelSizeNm::xy(
             1000.0 * parse_float(&mpp_x)?,
             1000.0 * parse_float(&mpp_y)?,
         ));
     }
 
-    Err(ApiError::not_found(
-        "Unable to extract pixel size from metadata.",
-    ))
+    Ok(UNKNOWN_PIXEL_SIZE_NM)
 }
 
 fn parse_float(raw: &str) -> Result<f64> {

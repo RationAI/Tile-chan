@@ -1,5 +1,7 @@
 # Tile-chan
 
+<img src="assets/tilechan.png" alt="Tile-chan" align="right" width="200">
+
 Tile-chan is a Rust re-implementation of the Python `wsi_service` in this repository. Same
 URLs, same parameters, same status codes, same response bodies — the goal is a drop-in
 replacement, so no client needs to change.

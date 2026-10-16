@@ -1492,6 +1492,81 @@
    70
   ]
  },
+ "deep_rgb.tif": {
+  "byteorder": "<",
+  "imagej_metadata": {},
+  "is_bigtiff": false,
+  "is_imagej": false,
+  "is_ome": false,
+  "levels": [
+   {
+    "axes": "YXS",
+    "pages": [
+     {
+      "bitspersample": 16,
+      "compression": 1,
+      "databytecounts": [
+       24
+      ],
+      "dataoffsets": [
+       272
+      ],
+      "description": "{\"shape\": [2, 2, 3]}",
+      "dtype": "<u2",
+      "imagedepth": 1,
+      "imagelength": 2,
+      "imagewidth": 2,
+      "index": 0,
+      "is_tiled": false,
+      "jpegtables": null,
+      "offset": 8,
+      "photometric": 2,
+      "pixels": {
+       "bytes": "//8AAAAAAAD//wAAAAAAAP///////wAA",
+       "dtype": "<u2",
+       "shape": [
+        2,
+        2,
+        3
+       ]
+      },
+      "planarconfig": 1,
+      "predictor": 1,
+      "rowsperstrip": 2,
+      "samplesperpixel": 3,
+      "tags": {
+       "ImageDescription": "{\"shape\": [2, 2, 3]}",
+       "ResolutionUnit": 1,
+       "XResolution": [
+        1,
+        1
+       ],
+       "YResolution": [
+        1,
+        1
+       ]
+      },
+      "tiledepth": 1,
+      "tilelength": 0,
+      "tilewidth": 0
+     }
+    ],
+    "shape": [
+     2,
+     2,
+     3
+    ]
+   }
+  ],
+  "ome_metadata": null,
+  "page_count": 1,
+  "series_axes": "YXS",
+  "series_shape": [
+   2,
+   2,
+   3
+  ]
+ },
  "float.ome.tif": {
   "byteorder": "<",
   "imagej_metadata": {},
@@ -2441,6 +2516,78 @@
   "series_shape": [
    6,
    8
+  ]
+ },
+ "plain_grey16.tif": {
+  "byteorder": "<",
+  "imagej_metadata": {},
+  "is_bigtiff": false,
+  "is_imagej": false,
+  "is_ome": false,
+  "levels": [
+   {
+    "axes": "YX",
+    "pages": [
+     {
+      "bitspersample": 16,
+      "compression": 1,
+      "databytecounts": [
+       8
+      ],
+      "dataoffsets": [
+       256
+      ],
+      "description": "{\"shape\": [2, 2]}",
+      "dtype": "<u2",
+      "imagedepth": 1,
+      "imagelength": 2,
+      "imagewidth": 2,
+      "index": 0,
+      "is_tiled": false,
+      "jpegtables": null,
+      "offset": 8,
+      "photometric": 1,
+      "pixels": {
+       "bytes": "AABVVaqq//8=",
+       "dtype": "<u2",
+       "shape": [
+        2,
+        2
+       ]
+      },
+      "planarconfig": 1,
+      "predictor": 1,
+      "rowsperstrip": 2,
+      "samplesperpixel": 1,
+      "tags": {
+       "ImageDescription": "{\"shape\": [2, 2]}",
+       "ResolutionUnit": 1,
+       "XResolution": [
+        1,
+        1
+       ],
+       "YResolution": [
+        1,
+        1
+       ]
+      },
+      "tiledepth": 1,
+      "tilelength": 0,
+      "tilewidth": 0
+     }
+    ],
+    "shape": [
+     2,
+     2
+    ]
+   }
+  ],
+  "ome_metadata": null,
+  "page_count": 1,
+  "series_axes": "YX",
+  "series_shape": [
+   2,
+   2
   ]
  },
  "plain_rgb.tif": {

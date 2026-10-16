@@ -41,11 +41,26 @@ def fixtures() -> dict[str, callable]:
     """name -> writer. Each writer takes the destination path."""
 
     def plain_rgb(path):
-        # `is_supported` must reject this: plain RGB belongs to tiffslide/openslide.
+        # `is_supported` must reject this: plain 8-bit RGB belongs to tiffslide/openslide.
         rgb = np.asarray(
             [[[255, 0, 0], [0, 255, 0]], [[0, 0, 255], [255, 255, 0]]], dtype=np.uint8
         )
         tifffile.imwrite(path, rgb, photometric="rgb")
+
+    def deep_rgb(path):
+        # `is_supported` must accept this: openslide flattens a 16-bit RGB page to 8-bit
+        # and tiffslide truncates it, so the deeper samples only survive here.
+        rgb = np.asarray(
+            [[[65535, 0, 0], [0, 65535, 0]], [[0, 0, 65535], [65535, 65535, 0]]],
+            dtype=np.uint16,
+        )
+        tifffile.imwrite(path, rgb, photometric="rgb")
+
+    def plain_grey16(path):
+        # `is_supported` must accept this too: a single-channel `YX` page is a layout this
+        # plugin reads at any depth, and no other plugin opens a 16-bit greyscale TIFF.
+        grey = np.asarray([[0, 21845], [43690, 65535]], dtype=np.uint16)
+        tifffile.imwrite(path, grey, photometric="minisblack")
 
     def rgb_zstack_imagej(path):
         data = np.asarray(
@@ -247,6 +262,8 @@ def fixtures() -> dict[str, callable]:
 
     named = {
         "plain_rgb.tif": plain_rgb,
+        "deep_rgb.tif": deep_rgb,
+        "plain_grey16.tif": plain_grey16,
         "rgb_zstack_imagej.tif": rgb_zstack_imagej,
         "zstack_imagej.tif": zstack_imagej,
         "channels_only_imagej.tif": channels_only_imagej,

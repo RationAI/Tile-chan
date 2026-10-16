@@ -176,7 +176,12 @@ pub fn has_nontrivial_axis(series: &Series, axis: char) -> bool {
 ///
 /// Note that both `C`/`S`/`Z` branches return `true` immediately, so the first
 /// non-trivial one decides; an axis outside `XYCSZ` with size above 1 rejects the file.
-pub fn has_supported_axis_layout(series: &Series, samples: usize) -> bool {
+///
+/// Divergence from Python, which ends on `samples > 1` and so declines a plain
+/// single-channel `YX` page. That page is a layout this plugin reads at any bit depth,
+/// and declining it leaves a 16-bit or float greyscale TIFF with no plugin that can open
+/// it at all. See `docs/divergences.md`, divergence 39.
+pub fn has_supported_axis_layout(series: &Series, _samples: usize) -> bool {
     for (index, axis) in series.axes.chars().enumerate() {
         if matches!(axis, 'X' | 'Y') {
             continue;
@@ -189,7 +194,7 @@ pub fn has_supported_axis_layout(series: &Series, samples: usize) -> bool {
             return false;
         }
     }
-    samples > 1
+    true
 }
 
 #[cfg(test)]

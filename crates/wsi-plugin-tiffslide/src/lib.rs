@@ -46,6 +46,13 @@ const SUPPORTED_EXTENSIONS: [&str; 4] = ["svs", "tiff", "tif", "ndpi"];
 
 const DEFAULT_TILE_SIZE: i64 = 256;
 
+/// Reported when the file records no pixel size — the same sentinel `pil` and `mvt` use.
+const UNKNOWN_PIXEL_SIZE_NM: SlidePixelSizeNm = SlidePixelSizeNm {
+    x: -1.0,
+    y: -1.0,
+    z: None,
+};
+
 pub struct TiffSlidePlugin {
     settings: Arc<Settings>,
 }
@@ -419,7 +426,7 @@ fn slide_info(reader: &TiffSlideReader) -> Result<SlideInfo> {
         channel_depth: Some(8),
         extent: SlideExtent::new(width, height, 1),
         num_levels: levels.len() as i64,
-        pixel_size_nm: pixel_size(reader)?,
+        pixel_size_nm: pixel_size(reader),
         tile_extent: tile_extent(reader),
         levels,
         format: reader.format.as_str().to_owned(),
@@ -429,19 +436,18 @@ fn slide_info(reader: &TiffSlideReader) -> Result<SlideInfo> {
 
 /// `__get_pixel_size`.
 ///
-/// The `else` branch is a dead `SlidePixelSizeNm()` that raises, and a supported vendor
-/// with no `mpp` reaches `float(None)`, which raises too. Both surface as the same 404.
-fn pixel_size(reader: &TiffSlideReader) -> Result<SlidePixelSizeNm> {
+/// In Python the `else` branch is a dead `SlidePixelSizeNm()` that raises, and a supported
+/// vendor with no `mpp` reaches `float(None)`, which raises too — both surface as a 404 on
+/// a slide that is otherwise perfectly readable. A TIFF written with `ResolutionUnit` NONE
+/// hits exactly that. Here both report `UNKNOWN_PIXEL_SIZE_NM` instead, the `-1` the `pil`
+/// and `mvt` plugins already use. See `docs/divergences.md`, divergence 39.
+fn pixel_size(reader: &TiffSlideReader) -> SlidePixelSizeNm {
     if !reader::vendor_is_supported(reader.properties.vendor.as_deref()) {
-        return Err(ApiError::not_found(
-            "Failed to gather slide infos. [2 validation errors for SlidePixelSizeNm\nx\n  Field required\ny\n  Field required]",
-        ));
+        return UNKNOWN_PIXEL_SIZE_NM;
     }
     match (reader.properties.mpp_x, reader.properties.mpp_y) {
-        (Some(x), Some(y)) => Ok(SlidePixelSizeNm::xy(1000.0 * x, 1000.0 * y)),
-        _ => Err(ApiError::not_found(
-            "Failed to gather slide infos. [float() argument must be a string or a real number, not 'NoneType']",
-        )),
+        (Some(x), Some(y)) => SlidePixelSizeNm::xy(1000.0 * x, 1000.0 * y),
+        _ => UNKNOWN_PIXEL_SIZE_NM,
     }
 }
 

@@ -738,3 +738,88 @@ could be reproduced faithfully anyway, since the outcome depends on the interlea
 concurrent requests. The parity harness allowlists `label`, `macro` and the batch
 thumbnails *scoped to DICOM slides*, so the same endpoints still have to match exactly on
 every slide where Python is not corrupting its own cache.
+
+### 39. A missing pixel size is reported, not raised, and deep TIFFs stay with `tifffile`
+
+Four Python behaviours conspire to make a perfectly readable TIFF unservable, and the port
+breaks the chain in three places.
+
+`wsi_service_base_plugins/tiffslide/wsi_service_plugin_tiffslide/slide.py:153`
+
+```python
+def __get_pixel_size(self):
+    if self.slide.properties[tiffslide.PROPERTY_NAME_VENDOR] in self.supported_vendors:
+        pixel_size_nm_x = 1000.0 * float(self.slide.properties[tiffslide.PROPERTY_NAME_MPP_X])
+        ...
+    else:
+        SlidePixelSizeNm()
+    return SlidePixelSizeNm(x=pixel_size_nm_x, y=pixel_size_nm_y)
+```
+
+`tiffslide` synthesises `mpp` from the TIFF resolution tags and produces none at all for
+`ResolutionUnit` NONE — which is what `tifffile.TiffWriter` leaves behind when the caller
+passes no `resolution=`. `float(None)` then raises, and `/slides/info` is a 404 saying
+`float() argument must be a string or a real number, not 'NoneType'`. The `else` branch is
+dead code that raises too. `openslide`'s plugin does the same thing in its own words:
+`"Unable to extract pixel size from metadata."`
+
+Meanwhile the `tifffile` plugin, which has a 1 µm/px fallback and reads any bit depth,
+declines the file before it gets that far — `__init__.py:70`:
+
+```python
+if photometric in (_PHOTOMETRIC_RGB, _PHOTOMETRIC_YCBCR) and samples in (3, 4) and not ...Z:
+    return False
+...
+return _has_supported_axis_layout(series, samples)   # ends on `samples > 1`
+```
+
+So a 16-bit RGB page is declined for being RGB, and a 16-bit greyscale page is declined for
+having one sample. Neither of the two plugins left can render either faithfully, and with a
+missing pixel size both refuse outright. The slide has no reader.
+
+**Port:** three deliberate changes.
+
+- **A missing pixel size is not an error.** `openslide` and `tiffslide` report
+  `{"x": -1.0, "y": -1.0}` — the sentinel `pil` and `mvt` already use for "unknown" — on
+  every branch that previously raised. The slide opens; the client sees that the size is
+  not known.
+- **`tifffile` declines only *8-bit* RGB(A).** A 16-bit or float RGB page stays with
+  `tifffile`, as does a plain single-channel `YX` page of any depth
+  (`has_supported_axis_layout` ends on `true`, not `samples > 1`). Plain 8-bit RGB still
+  goes to `tiffslide`/`openslide`, which do palette, YCbCr and ICC better.
+- **`openslide` hands back a plain TIFF.** `OpenSlideSlide::open` returns a 404 when
+  `detect_format` says `generic-tiff`, so the plugin chain continues to `tifffile` and
+  `tiffslide`. libopenslide's generic-TIFF backend exposes only the first IFD — it reports
+  one level for a five-level pyramid — and flattens every page to 8-bit RGB. Python never
+  had to decide this, because `__get_pixel_size` raised on most such files anyway; once a
+  missing pixel size is survivable, `openslide` at priority 10 would otherwise win them
+  all. Vendor formats are untouched: `detect_format` names them, and only a TIFF with no
+  recognised vendor is handed back.
+
+Measured on a set of pyramidal TIFFs written by `tifffile` with no `resolution=`, every one
+of which is a 404 on both services before the change:
+
+| fixture | plugin | channels | depth |
+|---|---|---|---|
+| 16-bit RGB | `tifffile` | 3 | 16 |
+| 16-bit greyscale | `tifffile` | 1 | 16 |
+| 12-in-16-bit greyscale | `tifffile` | 1 | 16 |
+| float32 greyscale | `tifffile` | 1 | 32 |
+| 8-bit palette | `tifffile` | 1 | 8 |
+| 6-channel 16-bit | `tifffile` | 6 | 16 |
+
+Two upstream behaviours are left alone, because they are not what makes these files
+unreadable. `convert_narray_uintX_to_uint8` defaults the window's upper bound to
+`2**exp / (exp / 4)` rather than `2**exp - 1` (`image_utils.py:35`), so a 16-bit image
+renders four times too bright and a float32 image renders black; the bounds are not
+reachable over the API in either service. And a multi-IFD TIFF whose extra pages carry no
+`NewSubfileType` is not a pyramid to `tifffile` — the plugin serves its full-resolution
+page and reports one level.
+
+Nothing is added to the parity allowlist for this. A plain TIFF that Python 404s cannot be
+compared at all, and one that both services serve now comes from a different plugin — a
+pyramidal RGB TIFF reports eleven levels here against Python's one, because `openslide`
+sees only the first IFD. Allowlisting that would need a label-and-path pattern broad enough
+to cover every endpoint on every `.tif`, which would hide real regressions on OME-TIFFs
+along with it. The harness is expected to report plain-TIFF slides as differing, and this
+entry is the reason.

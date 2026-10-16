@@ -26,6 +26,10 @@ services:
       - WS_MAX_RETURNED_REGION_SIZE=${WS_MAX_RETURNED_REGION_SIZE:-25000000}
       - WS_MAX_THUMBNAIL_SIZE=${WS_MAX_THUMBNAIL_SIZE:-500}
       - WS_GET_TILE_APPLY_PADDING=${WS_GET_TILE_APPLY_PADDING:-False}
+      # Plugin priority. `plugin_priority_override` reads the process environment directly,
+      # never the `.env` file, so the override has to be forwarded explicitly or openslide
+      # keeps its default 0 and loses .svs to tiffslide (priority 1).
+      - WS_PLUGIN_PRIORITY_OPENSLIDE=${WS_PLUGIN_PRIORITY_OPENSLIDE:-}
       # Auth
       - WS_API_V3_INTEGRATION=${WS_API_V3_INTEGRATION:-wsi_service.api.v3.integrations.disable_auth:DisableAuth}
       - WS_IDP_URL=${WS_IDP_URL:-}
@@ -52,6 +56,7 @@ services:
       - WS_MAX_RETURNED_REGION_SIZE=${WS_MAX_RETURNED_REGION_SIZE:-25000000}
       - WS_MAX_THUMBNAIL_SIZE=${WS_MAX_THUMBNAIL_SIZE:-500}
       - WS_GET_TILE_APPLY_PADDING=${WS_GET_TILE_APPLY_PADDING:-False}
+      - WS_PLUGIN_PRIORITY_OPENSLIDE=${WS_PLUGIN_PRIORITY_OPENSLIDE:-}
     volumes:
       - ${COMPOSE_DATA_DIR:-./data}:/data:ro
     ports:

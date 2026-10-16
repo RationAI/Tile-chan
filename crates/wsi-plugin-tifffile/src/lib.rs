@@ -51,7 +51,7 @@ use wsi_core::settings::Settings;
 use wsi_core::slide::{ReadOptions, Slide};
 
 use layout::{has_nontrivial_axis, has_supported_axis_layout, LayoutInfo, RGB_PHOTOMETRICS};
-use tiff::page::Page;
+use tiff::page::{Page, SampleDtype};
 use tiff::TiffFile;
 
 /// `_OME_SUFFIXES` — an OME file is claimed on its name alone.
@@ -100,10 +100,14 @@ impl WsiPlugin for TiffFilePlugin {
 
     /// `is_supported`.
     ///
-    /// The interesting case is the one that says *no*: a plain RGB(A) page with no
-    /// non-trivial Z axis belongs to `tiffslide`/`openslide`, which expose it as a
-    /// picture. An RGB *Z-stack* is different — those two cannot address its Z planes —
-    /// so it stays here.
+    /// The interesting case is the one that says *no*: a plain **8-bit** RGB(A) page with
+    /// no non-trivial Z axis belongs to `tiffslide`/`openslide`, which expose it as a
+    /// picture and do palette, YCbCr and ICC better. An RGB *Z-stack* is different —
+    /// those two cannot address its Z planes — so it stays here.
+    ///
+    /// Divergence from Python, which declines every RGB(A) page whatever its depth: a
+    /// 16-bit or float RGB page is a layout `openslide` either cannot open at all or can
+    /// only guess at, so it stays here too. See `docs/divergences.md`, divergence 39.
     fn is_supported(&self, path: &Path) -> bool {
         if !path.is_file() {
             return false;
@@ -130,6 +134,7 @@ impl WsiPlugin for TiffFilePlugin {
         let samples = keyframe.samples_per_pixel.max(1);
         if RGB_PHOTOMETRICS.contains(&keyframe.photometric)
             && (samples == 3 || samples == 4)
+            && keyframe.dtype == SampleDtype::U8
             && !has_nontrivial_axis(&file.series, 'Z')
         {
             return false;
@@ -824,6 +829,14 @@ mod tests {
     #[test]
     fn a_plain_rgb_tiff_is_left_to_tiffslide() {
         assert!(!plugin().is_supported(&fixture("plain_rgb.tif")));
+    }
+
+    #[test]
+    fn a_deeper_than_8_bit_page_is_claimed_even_when_it_is_rgb() {
+        // Divergence 39: Python declines both of these, which leaves a 16-bit TIFF with
+        // no plugin that reads it at its own depth.
+        assert!(plugin().is_supported(&fixture("deep_rgb.tif")));
+        assert!(plugin().is_supported(&fixture("plain_grey16.tif")));
     }
 
     #[test]
