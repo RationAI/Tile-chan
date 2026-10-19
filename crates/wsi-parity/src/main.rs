@@ -398,7 +398,15 @@ async fn main() -> ExitCode {
             }
         };
 
-        match compare::compare_with(&python, &rust, config.tolerance) {
+        // `cases` is the one label whose order is itself a documented divergence; see
+        // `compare_case_listing`.
+        let verdict = if request.label.starts_with("cases") {
+            compare::compare_case_listing(&python, &rust, config.tolerance)
+        } else {
+            compare::compare_with(&python, &rust, config.tolerance)
+        };
+
+        match verdict {
             Verdict::Match => summary.matched += 1,
             Verdict::MatchWithTolerance(note) => {
                 summary.tolerated += 1;

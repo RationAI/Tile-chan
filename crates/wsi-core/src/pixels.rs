@@ -7,8 +7,8 @@
 //! The dtype tag on planar data is load-bearing: `convert_narray_to_pil_image`
 //! (`wsi_service/utils/image_utils.py:65`) dispatches on it and rejects anything it does
 //! not know with `400 "Array conversion not supported"`. Signed integer variants exist
-//! here because the tifffile plugin can read signed pages; they hit that same 400, as in
-//! Python.
+//! here because the tifffile plugin can read signed pages; Python rejects those, this
+//! port renders them — see `docs/divergences.md`, divergence 40.
 
 use bytes::Bytes;
 use image::DynamicImage;
@@ -32,14 +32,17 @@ impl Dtype {
     ///
     /// Python picks this by dtype: `uint16 -> 16`, `uint32`/`float32 -> 32`,
     /// `uint64`/`float64 -> 64`. `uint8` short-circuits before the conversion.
+    ///
+    /// Divergence 40: Python has no branch for a signed dtype, so an `int8` OME-TIFF —
+    /// which is what the OME sample files are written as — is a 400 on every tile. Here a
+    /// signed dtype takes the exponent of the unsigned type of the same width, which
+    /// windows it exactly like that type and clips negative samples to black.
     pub fn conversion_exponent(self) -> Option<u32> {
         match self {
-            Dtype::U8 => Some(8),
-            Dtype::U16 => Some(16),
-            Dtype::U32 | Dtype::F32 => Some(32),
+            Dtype::U8 | Dtype::I8 => Some(8),
+            Dtype::U16 | Dtype::I16 => Some(16),
+            Dtype::U32 | Dtype::I32 | Dtype::F32 => Some(32),
             Dtype::U64 | Dtype::F64 => Some(64),
-            // Python has no branch for signed dtypes; they fall through to the 400.
-            Dtype::I8 | Dtype::I16 | Dtype::I32 => None,
         }
     }
 }

@@ -293,6 +293,14 @@ output differs at the pixel level. Parity runs must use the default feature set.
 `SimpleMapper.get_cases` and `PathsMapper.get_cases` pass that order straight through. The
 port sorts by name so responses are stable across runs and platforms.
 
+The two orders only diverge visibly on a **mixed-case** data directory, which is why this
+went unseen until the harness was pointed at the whole slide collection. NTFS collates
+case-insensitively, so Python reports `Philips iSyntax` before `PIL` and
+`aperio_at2_v12.0.0.svs` before `CMU-1.svs`; the port's sort is bytewise, so uppercase comes
+first and both pairs swap. `compare_case_listing` in the harness therefore compares the
+listing with both sides sorted — allowlisting the label outright would stop checking *which*
+cases and slides are reported, which is the only thing the endpoint is for.
+
 The same applies to `/slides/download` of a **directory** slide, which is what a DICOM slide
 is. `expand_folders` (`download_utils.py:20`) walks the directory and then de-duplicates
 with `set()`, so the archive's entry order is Python's hash order — arbitrary, and not even
@@ -823,3 +831,60 @@ sees only the first IFD. Allowlisting that would need a label-and-path pattern b
 to cover every endpoint on every `.tif`, which would hide real regressions on OME-TIFFs
 along with it. The harness is expected to report plain-TIFF slides as differing, and this
 entry is the reason.
+
+### 40. A signed-integer page renders instead of returning 400
+
+`wsi_service/utils/image_utils.py:65`
+
+```python
+if narray.dtype == np.uint8: ...
+elif narray.dtype == np.uint16: ...
+elif narray.dtype in [np.uint32, np.float32]: ...
+elif narray.dtype in [np.uint64, np.float64]: ...
+else:
+    raise HTTPException(status_code=400, detail="Array conversion not supported")
+```
+
+There is no branch for a signed dtype, so every tile of an `int8` or `int16` page is a 400.
+That is not an exotic case: OME's own sample files are written as `int8` —
+`multi-channel-z-series.ome.tif` is `CZYX` `int8`, and the `tifffile` plugin opens it,
+reports its channels and its Z extent, and then fails every single tile request with
+`Array conversion not supported`. The slide is listed, described and unviewable.
+
+**Port:** a signed dtype takes the exponent of the unsigned type of the same width —
+`int8` the 8-bit window, `int16` the 16-bit one, `int32` the 32-bit one — so it is scaled
+exactly like that type and a negative sample clips to black rather than wrapping to white.
+Pinned by `wsi-core/src/image/convert.rs::signed_dtypes_window_like_their_unsigned_width`.
+Nothing else changes: `int64` has no `PlanarData` variant and still 400s, as it does in
+Python.
+
+### 41. A strip geometry is not advertised as the tile geometry
+
+`wsi_service_base_plugins/openslide/wsi_service_plugin_openslide/slide.py:187`, and the
+same code in the `tiffslide` plugin.
+
+```python
+tile_height = int(self.slide.properties["openslide.level[0].tile-height"])
+tile_width = int(self.slide.properties["openslide.level[0].tile-width"])
+```
+
+For a tiled slide those are the tile dimensions. For a **striped** one they are the strip
+dimensions, and a Hamamatsu NDPI is a pathological case: libopenslide reports `3840x8`, so
+`/slides/info` tells the client that a 61440x41472 level is a **16 x 5184** grid. A viewer
+filling one 1080-pixel-tall screen column then issues ~135 requests where 5 would do. Each
+one is fast — a level-0 tile measures at 3-8 ms here — but the count is what makes opening
+such a slide crawl. `tiffslide` says `4096x8` for the same file and `wsidicom` is unaffected.
+
+Nothing about the service requires the advertised tile to match the storage layout: every
+plugin reads an arbitrary rectangle, and `/slides/region` on the same slide costs 95 ms for
+a cold 256x256 read whatever the strip height is.
+
+**Port:** `wsi-core/src/models.rs::usable_tile_extent` replaces a degenerate geometry with
+256x256. Degenerate means a side below 64 pixels, or one side more than 8x the other —
+`3840x8` fails both tests, while ordinary tile sizes (240x240, 256x256, 512x512, 1024x1024)
+pass untouched. Set `WS_RAW_TILE_EXTENT=True` to report the decoder's numbers verbatim, as
+Python does.
+
+Note this changes tile *addressing* for affected slides, so a client holding tiles cached
+under the old geometry must drop them. It is deliberately not scoped to NDPI: any striped
+page reaches the same code, in `openslide` and `tiffslide` alike.

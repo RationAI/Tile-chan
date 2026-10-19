@@ -20,7 +20,8 @@ use wsi_core::error::{ApiError, Result};
 use wsi_core::icc::{IccIntent, IccProfileCache};
 use wsi_core::image::rgba_to_rgb_with_background_color;
 use wsi_core::models::{
-    original_levels, rgb_channel_list, SlideExtent, SlideInfo, SlidePixelSizeNm,
+    original_levels, rgb_channel_list, usable_tile_extent, SlideExtent, SlideInfo,
+    SlidePixelSizeNm,
 };
 use wsi_core::pixels::Pixels;
 use wsi_core::plugins::WsiPlugin;
@@ -194,7 +195,7 @@ impl OpenSlideSlide {
 
         let icc_profile = slide.icc_profile()?;
 
-        let info = build_slide_info(&slide, format)?;
+        let info = build_slide_info(&slide, format, &settings)?;
 
         Ok(Self {
             path,
@@ -360,8 +361,12 @@ impl OpenSlideSlide {
 }
 
 /// `__get_slide_info_openslide` — every failure collapses into one 404, as in Python.
-fn build_slide_info(slide: &OpenSlide, format: Option<String>) -> Result<SlideInfo> {
-    gather_slide_info(slide, format).map_err(|err| {
+fn build_slide_info(
+    slide: &OpenSlide,
+    format: Option<String>,
+    settings: &Settings,
+) -> Result<SlideInfo> {
+    gather_slide_info(slide, format, settings).map_err(|err| {
         ApiError::not_found(format!(
             "Failed to gather slide infos. [{}]",
             err.detail_text()
@@ -369,7 +374,11 @@ fn build_slide_info(slide: &OpenSlide, format: Option<String>) -> Result<SlideIn
     })
 }
 
-fn gather_slide_info(slide: &OpenSlide, format: Option<String>) -> Result<SlideInfo> {
+fn gather_slide_info(
+    slide: &OpenSlide,
+    format: Option<String>,
+    settings: &Settings,
+) -> Result<SlideInfo> {
     let level_count = slide.level_count()?;
     if level_count <= 0 {
         return Err(ApiError::internal("no levels"));
@@ -396,7 +405,7 @@ fn gather_slide_info(slide: &OpenSlide, format: Option<String>) -> Result<SlideI
         extent: SlideExtent::new(width, height, 1),
         num_levels: levels.len() as i64,
         pixel_size_nm: pixel_size(slide)?,
-        tile_extent: tile_extent(slide)?,
+        tile_extent: tile_extent(slide, settings)?,
         levels,
         format,
         raw_download: false,
@@ -461,8 +470,8 @@ fn parse_float(raw: &str) -> Result<f64> {
 }
 
 /// `__get_tile_extent` — `slide.py:187`. Both properties must be present to override the
-/// 256x256 default.
-fn tile_extent(slide: &OpenSlide) -> Result<SlideExtent> {
+/// 256x256 default, and [`usable_tile_extent`] has the last word on a degenerate one.
+fn tile_extent(slide: &OpenSlide, settings: &Settings) -> Result<SlideExtent> {
     let height = slide.property(PROPERTY_TILE_HEIGHT)?;
     let width = slide.property(PROPERTY_TILE_WIDTH)?;
     match (width, height) {
@@ -473,7 +482,7 @@ fn tile_extent(slide: &OpenSlide) -> Result<SlideExtent> {
             let height = height.trim().parse::<i64>().map_err(|_| {
                 ApiError::internal(format!("ValueError('invalid tile height: {height}')"))
             })?;
-            Ok(SlideExtent::new(width, height, 1))
+            Ok(usable_tile_extent(width, height, settings.raw_tile_extent))
         }
         _ => Ok(SlideExtent::new(DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, 1)),
     }

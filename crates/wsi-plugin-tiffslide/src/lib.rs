@@ -32,7 +32,8 @@ use wsi_core::error::{ApiError, Result};
 use wsi_core::icc::{IccIntent, IccProfileCache};
 use wsi_core::image::{pillow_thumbnail, rgba_to_rgb_with_background_color, Filter};
 use wsi_core::models::{
-    original_levels, rgb_channel_list, tile_read_size, SlideExtent, SlideInfo, SlidePixelSizeNm,
+    original_levels, rgb_channel_list, tile_read_size, usable_tile_extent, SlideExtent, SlideInfo,
+    SlidePixelSizeNm,
 };
 use wsi_core::pixels::Pixels;
 use wsi_core::plugins::WsiPlugin;
@@ -123,7 +124,7 @@ pub struct TiffSlideSlide {
 impl TiffSlideSlide {
     fn open(path: PathBuf, settings: Arc<Settings>) -> Result<Self> {
         let reader = TiffSlideReader::open(&path)?;
-        let info = slide_info(&reader)?;
+        let info = slide_info(&reader, &settings);
         let icc_profile = reader.icc_profile.clone();
         Ok(Self {
             path,
@@ -414,24 +415,24 @@ fn adapt_level_0_location(start_x: i64, start_y: i64, downsample: f64) -> (i64, 
 }
 
 /// `__get_slide_info`.
-fn slide_info(reader: &TiffSlideReader) -> Result<SlideInfo> {
+fn slide_info(reader: &TiffSlideReader, settings: &Settings) -> SlideInfo {
     let (width, height) = reader.dimensions();
     let dimensions = reader.level_dimensions();
     let downsamples = reader.level_downsamples();
     let levels = original_levels(&dimensions, &downsamples);
 
-    Ok(SlideInfo {
+    SlideInfo {
         id: String::new(),
         channels: Some(rgb_channel_list()),
         channel_depth: Some(8),
         extent: SlideExtent::new(width, height, 1),
         num_levels: levels.len() as i64,
         pixel_size_nm: pixel_size(reader),
-        tile_extent: tile_extent(reader),
+        tile_extent: tile_extent(reader, settings),
         levels,
         format: reader.format.as_str().to_owned(),
         raw_download: false,
-    })
+    }
 }
 
 /// `__get_pixel_size`.
@@ -455,9 +456,11 @@ fn pixel_size(reader: &TiffSlideReader) -> SlidePixelSizeNm {
 ///
 /// The two properties are always present — `collect_level_info` sets them for every
 /// level — so the 256 default is only reached when the file has no level at all.
-fn tile_extent(reader: &TiffSlideReader) -> SlideExtent {
+fn tile_extent(reader: &TiffSlideReader, settings: &Settings) -> SlideExtent {
     match reader.properties.level_tiles.first() {
-        Some(&(width, height)) => SlideExtent::new(width, height, 1),
+        // A striped page reports its strip geometry here, which `usable_tile_extent`
+        // replaces with a square — divergence 41.
+        Some(&(width, height)) => usable_tile_extent(width, height, settings.raw_tile_extent),
         None => SlideExtent::new(DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, 1),
     }
 }

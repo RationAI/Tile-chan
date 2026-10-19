@@ -61,6 +61,12 @@ pub struct Settings {
     /// digits instead of raising; see `docs/divergences.md`. Defaults to `false` so the
     /// service reproduces Python behaviour bug-for-bug unless opted in.
     pub lenient_padding_color: bool,
+
+    /// Not present in Python. When true, `tile_extent` reports the decoder's own tile
+    /// geometry however degenerate it is — Python's behaviour, which turns a striped NDPI
+    /// into a 3840x8 tile grid. Defaults to `false`, which substitutes a square tile; see
+    /// `docs/divergences.md`, divergence 41.
+    pub raw_tile_extent: bool,
 }
 
 impl Default for Settings {
@@ -100,6 +106,7 @@ impl Default for Settings {
             get_tile_apply_padding: false,
 
             lenient_padding_color: false,
+            raw_tile_extent: false,
         }
     }
 }
@@ -329,6 +336,7 @@ impl Settings {
         bool_field!(apply_padding);
         bool_field!(get_tile_apply_padding);
         bool_field!(lenient_padding_color);
+        bool_field!(raw_tile_extent);
 
         // data_dir last: the field validator runs on whatever value was resolved.
         let raw_data_dir = src.get("data_dir").unwrap_or_else(|| s.data_dir.clone());

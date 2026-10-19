@@ -16,7 +16,7 @@ use image::{DynamicImage, GrayImage, Rgb, RgbImage};
 use ndarray::Array3;
 
 use crate::error::{ApiError, Result};
-use crate::pixels::{Dtype, PlanarData};
+use crate::pixels::PlanarData;
 
 /// Pillow's `MULDIV255`: `tmp = a*b + 128; ((tmp >> 8) + tmp) >> 8`.
 ///
@@ -185,32 +185,22 @@ fn to_uint8_planes(
         return Err(ApiError::bad_request("Array conversion not supported"));
     };
 
-    // uint8 with no window is returned untouched.
-    if data.dtype() == Dtype::U8 {
-        let window = resolve_window(8, lower, upper)?;
-        if window.identity {
-            let mut out = Array3::zeros((c, h, w));
-            for ci in 0..c {
-                for y in 0..h {
-                    for x in 0..w {
-                        out[[ci, y, x]] = data.get_f64(ci, y, x) as u8;
-                    }
-                }
-            }
-            return Ok(out);
-        }
+    let window = resolve_window(exp, lower, upper)?;
+
+    // An 8-bit dtype with no window is returned untouched. `as u8` saturates, so an
+    // `int8`'s negative half lands on 0 rather than wrapping to the top of the range.
+    if window.identity {
         let mut out = Array3::zeros((c, h, w));
         for ci in 0..c {
             for y in 0..h {
                 for x in 0..w {
-                    out[[ci, y, x]] = apply_window(data.get_f64(ci, y, x), window);
+                    out[[ci, y, x]] = data.get_f64(ci, y, x) as u8;
                 }
             }
         }
         return Ok(out);
     }
 
-    let window = resolve_window(exp, lower, upper)?;
     let mut out = Array3::zeros((c, h, w));
     for ci in 0..c {
         for y in 0..h {
@@ -420,6 +410,7 @@ pub fn requested_channels_as_array(data: &PlanarData, image_channels: &[usize]) 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::pixels::Dtype;
     use ndarray::arr3;
 
     #[test]
@@ -551,10 +542,21 @@ mod tests {
     }
 
     #[test]
-    fn signed_dtypes_are_rejected_like_python() {
-        let data = PlanarData::I16(arr3(&[[[1i16]]]));
-        let err = planar_to_image(&data, None, None, PilMode::Rgb).unwrap_err();
-        assert_eq!(err.detail_text(), "Array conversion not supported");
+    fn signed_dtypes_window_like_their_unsigned_width() {
+        // Divergence 40. `int8` takes the 8-bit window, which is the identity over the
+        // positive half; `int16` takes the same contrast-boosted 16-bit window as `uint16`.
+        let data = PlanarData::I8(arr3(&[[[-5i8, 0, 127]]]));
+        let image = planar_to_image(&data, None, None, PilMode::L).unwrap();
+        let grey = image.to_luma8();
+        assert_eq!(
+            [grey.get_pixel(0, 0)[0], grey.get_pixel(1, 0)[0], grey.get_pixel(2, 0)[0]],
+            [0, 0, 127],
+            "a negative sample clips to black"
+        );
+
+        let data = PlanarData::I16(arr3(&[[[16384i16 / 2]]]));
+        let image = planar_to_image(&data, None, None, PilMode::L).unwrap();
+        assert_eq!(image.to_luma8().get_pixel(0, 0)[0], 127);
     }
 
     #[test]

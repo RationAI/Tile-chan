@@ -158,6 +158,33 @@ pub fn tile_read_size(
     )
 }
 
+/// Smallest tile side a client can be asked to page through, and the widest aspect ratio
+/// a tile may have, before [`usable_tile_extent`] substitutes a square one.
+const MIN_TILE_SIDE: i64 = 64;
+const MAX_TILE_ASPECT: i64 = 8;
+/// The square substituted for a degenerate tile geometry, and the service's default.
+pub const DEFAULT_TILE_SIDE: i64 = 256;
+
+/// The tile geometry to advertise, given what the decoder reports.
+///
+/// Divergence 41. Python reports the decoder's numbers verbatim, and for a striped slide
+/// those are the *strip* geometry: libopenslide describes a Hamamatsu NDPI as 3840x8, so a
+/// 61440x41472 level becomes a 16x5184 tile grid and a viewer opening the slide issues
+/// hundreds of requests to fill one screen. A strip is a storage detail, not a unit a
+/// client should page through — reads of an arbitrary rectangle cost the same either way —
+/// so a degenerate geometry is replaced by a square tile. `raw_tile_extent` restores
+/// Python's numbers.
+pub fn usable_tile_extent(width: i64, height: i64, raw: bool) -> SlideExtent {
+    let degenerate = width < MIN_TILE_SIDE
+        || height < MIN_TILE_SIDE
+        || width > height.saturating_mul(MAX_TILE_ASPECT)
+        || height > width.saturating_mul(MAX_TILE_ASPECT);
+    if raw || !degenerate {
+        return SlideExtent::new(width, height, 1);
+    }
+    SlideExtent::new(DEFAULT_TILE_SIDE, DEFAULT_TILE_SIDE, 1)
+}
+
 // --- service status -------------------------------------------------------------------
 
 /// `wsi_service/custom_models/service_status.py:8`

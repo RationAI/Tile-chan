@@ -81,6 +81,57 @@ impl Default for Tolerance {
     }
 }
 
+/// `/v3/cases/`, where the *order* of the listing is divergence 20 but its contents are not.
+///
+/// `PathsMapper.get_cases` passes `os.listdir` order straight through, so Python's order is
+/// whatever the filesystem gives it — case-insensitive on NTFS, so `Philips iSyntax` lands
+/// before `PIL` and `aperio_at2_v12.0.0.svs` before `CMU-1.svs`. The port sorts by name,
+/// which is bytewise, so uppercase sorts first. A data directory whose names all share a
+/// case never shows the difference; this collection does.
+///
+/// Comparing the listing exactly would therefore fail on every mixed-case directory, and
+/// allowlisting the label outright would stop checking *which* cases and slides are
+/// reported at all — the one thing this endpoint exists to tell a client. So the listing is
+/// compared with both sides sorted, and a difference that only sorting resolves is reported
+/// as the tolerated divergence it is.
+pub fn compare_case_listing(python: &Response, rust: &Response, tolerance: Tolerance) -> Verdict {
+    match compare_with(python, rust, tolerance) {
+        Verdict::Differ(reason) => {
+            let (Some(a), Some(b)) = (sorted_listing(&python.body), sorted_listing(&rust.body))
+            else {
+                return Verdict::Differ(reason);
+            };
+            let mut differences = Vec::new();
+            diff_json("", &a, &b, &mut differences);
+            if differences.is_empty() {
+                Verdict::MatchWithTolerance(
+                    "divergence 20: the same cases and slides, in a different order".to_string(),
+                )
+            } else {
+                Verdict::Differ(format!("sorted: {}", differences.join("; ")))
+            }
+        }
+        verdict => verdict,
+    }
+}
+
+/// A case listing with the cases and each case's slides sorted, or `None` when the body is
+/// not one — an error body, say, which must keep being compared as it stands.
+fn sorted_listing(body: &[u8]) -> Option<serde_json::Value> {
+    let mut cases: Vec<serde_json::Value> = serde_json::from_slice(body).ok()?;
+    for case in &mut cases {
+        let slides = case.get_mut("slides")?.as_array_mut()?;
+        slides.sort_by_key(|slide| slide.as_str().unwrap_or_default().to_owned());
+    }
+    cases.sort_by_key(|case| {
+        case.get("id")
+            .and_then(|id| id.as_str())
+            .unwrap_or_default()
+            .to_owned()
+    });
+    Some(serde_json::Value::Array(cases))
+}
+
 pub fn compare_with(python: &Response, rust: &Response, tolerance: Tolerance) -> Verdict {
     if python.status != rust.status {
         return Verdict::Differ(format!(
@@ -713,6 +764,38 @@ mod tests {
             body,
             truncated: false,
         }
+    }
+
+    #[test]
+    fn a_reordered_case_listing_is_tolerated() {
+        let a = json(
+            200,
+            r#"[{"id":"./Philips iSyntax","slides":["./Philips iSyntax/wsi.tiff"]},
+                {"id":"./PIL","slides":["./PIL/b.png","./PIL/a.png"]}]"#,
+        );
+        let b = json(
+            200,
+            r#"[{"id":"./PIL","slides":["./PIL/a.png","./PIL/b.png"]},
+                {"id":"./Philips iSyntax","slides":["./Philips iSyntax/wsi.tiff"]}]"#,
+        );
+        match compare_case_listing(&a, &b, Tolerance::default()) {
+            Verdict::MatchWithTolerance(note) => assert!(note.contains("divergence 20")),
+            other => panic!("expected a tolerated match, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_case_listing_missing_a_slide_still_differs() {
+        let a = json(200, r#"[{"id":"./PIL","slides":["./PIL/a.png","./PIL/b.png"]}]"#);
+        let b = json(200, r#"[{"id":"./PIL","slides":["./PIL/a.png"]}]"#);
+        assert!(compare_case_listing(&a, &b, Tolerance::default()).is_failure());
+    }
+
+    #[test]
+    fn a_case_listing_naming_a_different_case_still_differs() {
+        let a = json(200, r#"[{"id":"./PIL","slides":[]}]"#);
+        let b = json(200, r#"[{"id":"./Zeiss","slides":[]}]"#);
+        assert!(compare_case_listing(&a, &b, Tolerance::default()).is_failure());
     }
 
     #[test]
