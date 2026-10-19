@@ -794,11 +794,15 @@ missing pixel size both refuse outright. The slide has no reader.
 - **`tifffile` declines only *8-bit* RGB(A).** A 16-bit or float RGB page stays with
   `tifffile`, as does a plain single-channel `YX` page of any depth
   (`has_supported_axis_layout` ends on `true`, not `samples > 1`). Plain 8-bit RGB still
-  goes to `tiffslide`/`openslide`, which do palette, YCbCr and ICC better.
+  goes to `tiffslide`, which does palette, YCbCr and ICC better.
 - **`openslide` hands back a plain TIFF.** `OpenSlideSlide::open` returns a 404 when
   `detect_format` says `generic-tiff`, so the plugin chain continues to `tifffile` and
-  `tiffslide`. libopenslide's generic-TIFF backend exposes only the first IFD — it reports
-  one level for a five-level pyramid — and flattens every page to 8-bit RGB. Python never
+  `tiffslide`. libopenslide's generic-TIFF backend walks only the top-level IFD chain — a
+  pyramid kept in SubIFDs, as `tifffile` writes it, reports one level — and flattens every
+  page to 8-bit RGB. A conventional 8-bit tiled pyramid with one level per top-level IFD
+  (`Generic TIFF/CMU-1.tiff`) reads fine, but the refusal is blanket on purpose: every
+  plain TIFF goes to a TIFF-native plugin rather than splitting the format on file
+  contents. The openslide suite's `CMU-1.tiff` cases moved to the `tiffslide` suite. Python never
   had to decide this, because `__get_pixel_size` raised on most such files anyway; once a
   missing pixel size is survivable, `openslide` at priority 10 would otherwise win them
   all. Vendor formats are untouched: `detect_format` names them, and only a TIFF with no
@@ -827,7 +831,7 @@ page and reports one level.
 Nothing is added to the parity allowlist for this. A plain TIFF that Python 404s cannot be
 compared at all, and one that both services serve now comes from a different plugin — a
 pyramidal RGB TIFF reports eleven levels here against Python's one, because `openslide`
-sees only the first IFD. Allowlisting that would need a label-and-path pattern broad enough
+does not follow its SubIFDs. Allowlisting that would need a label-and-path pattern broad enough
 to cover every endpoint on every `.tif`, which would hide real regressions on OME-TIFFs
 along with it. The harness is expected to report plain-TIFF slides as differing, and this
 entry is the reason.

@@ -6,6 +6,12 @@
 //! which run against the same files. Matching them is therefore direct evidence of parity
 //! rather than a restatement of what this implementation happens to produce.
 //!
+//! `Generic TIFF/CMU-1.tiff` is the exception: the Python suite does run it through this
+//! plugin, and the port deliberately does not. See divergence 39 and
+//! `a_plain_tiff_is_handed_back_to_the_other_plugins`; its info, region, associated-image
+//! and label/macro expectations live in the `tiffslide` suite instead, taken from what
+//! tiffslide itself reports.
+//!
 //! Slides are not in the repository, so the whole module is skipped unless
 //! `WSI_TEST_SLIDES` points at a directory laid out like the `cds-test-suite` collection:
 //!
@@ -92,18 +98,11 @@ async fn slide_info_matches_the_python_suite() {
     // `None` for the tile extent means the Python suite's expectation could not be
     // confirmed against this libopenslide build; see the dedicated test below.
     let cases: &[InfoCase] = &[
-        (
-            "Generic TIFF/CMU-1.tiff",
-            10,
-            50,
-            Some((128, 128)),
-            46000,
-            32914,
-        ),
         ("Aperio/CMU-1.svs", 3, 499, Some((256, 256)), 46000, 32914),
-        // The Python suite expects (256, 256) here, but libopenslide 4.0.0 advertises
-        // 4096x8 for this NDPI and the plugin passes that through, exactly as Python would
-        // against the same build. Left unasserted rather than pinned to either value.
+        // The Python suite expects (256, 256) here, and so does this build -- but by a
+        // different route: libopenslide 4.0.0 advertises 4096x8 for this NDPI and
+        // `usable_tile_extent` replaces that strip geometry with 256x256. See divergence
+        // 41. Left unasserted so the case does not depend on which route produced it.
         ("Hamamatsu/OS-1.ndpi", 13, 227, None, 122880, 110592),
         (
             "MIRAX/Mirax2.2-1.mrxs",
@@ -152,13 +151,6 @@ async fn slide_info_matches_the_python_suite() {
 async fn region_pixels_match_the_python_suite() {
     // (path, start_x, start_y, size, expected pixel at 0,0)
     let cases: &[(&str, i64, i64, u32, [u8; 3])] = &[
-        (
-            "Generic TIFF/CMU-1.tiff",
-            15000,
-            15000,
-            345,
-            [255, 236, 253],
-        ),
         ("Aperio/CMU-1.svs", 15000, 15000, 345, [255, 235, 255]),
         ("Hamamatsu/OS-1.ndpi", 15000, 15000, 345, [220, 219, 227]),
         ("MIRAX/Mirax2.2-1.mrxs", 50000, 90000, 345, [231, 182, 212]),
@@ -203,7 +195,6 @@ async fn region_pixels_match_the_python_suite() {
 #[tokio::test]
 async fn thumbnail_pixels_match_the_python_suite() {
     let cases: &[(&str, [u8; 3])] = &[
-        ("Generic TIFF/CMU-1.tiff", [245, 246, 246]),
         ("Aperio/CMU-1.svs", [244, 246, 245]),
         ("Hamamatsu/OS-1.ndpi", [210, 200, 219]),
         ("MIRAX/Mirax2.2-1.mrxs", [223, 158, 215]),
@@ -239,7 +230,6 @@ async fn thumbnail_pixels_match_the_python_suite() {
 async fn label_and_macro_pixels_match_the_python_suite() {
     // (path, expects a label, [(x, y, expected)])
     let label_cases: &[AssociatedImageCase] = &[
-        ("Generic TIFF/CMU-1.tiff", false, &[]),
         (
             "Aperio/CMU-1.svs",
             true,
@@ -278,7 +268,6 @@ async fn label_and_macro_pixels_match_the_python_suite() {
     }
 
     let macro_cases: &[AssociatedImageCase] = &[
-        ("Generic TIFF/CMU-1.tiff", false, &[]),
         (
             "Aperio/CMU-1.svs",
             true,
@@ -393,7 +382,6 @@ async fn a_slide_without_an_icc_profile_reports_an_unhandled_failure() {
 #[tokio::test]
 async fn tile_extent_follows_the_advertised_properties() {
     for relative in [
-        "Generic TIFF/CMU-1.tiff",
         "Aperio/CMU-1.svs",
         "Hamamatsu/OS-1.ndpi",
         "MIRAX/Mirax2.2-1.mrxs",
@@ -425,4 +413,42 @@ async fn tile_extent_follows_the_advertised_properties() {
         eprintln!("{relative}: tile extent {}x{}", tile.x, tile.y);
         slide.close().await.unwrap();
     }
+}
+
+/// A TIFF with no recognised vendor is refused with a 404 so the plugin chain continues to
+/// `tifffile` and `tiffslide`. See divergence 39: libopenslide's generic-TIFF backend
+/// ignores SubIFD pyramids and decodes everything to 8-bit RGB. This file is neither --
+/// openslide reads all ten levels -- but the refusal is deliberately blanket, so every
+/// plain TIFF goes to the TIFF-native plugins.
+///
+/// This is the one place the port departs from the Python openslide suite, which asserts
+/// the opposite, so it is pinned rather than left to the parity harness.
+#[tokio::test]
+async fn a_plain_tiff_is_handed_back_to_the_other_plugins() {
+    let Some(root) = slide_root() else {
+        eprintln!("WSI_TEST_SLIDES is not set; skipping");
+        return;
+    };
+    let path = root.join("Generic TIFF/CMU-1.tiff");
+    if !path.exists() {
+        eprintln!("skipping Generic TIFF/CMU-1.tiff: not present");
+        return;
+    }
+
+    let plugin = OpenSlidePlugin::new(Arc::new(Settings::default()));
+    // Still *claimed* by extension -- the refusal happens on open, which is what lets the
+    // chain fall through instead of the request failing.
+    assert!(plugin.is_supported(&path));
+
+    let err = plugin
+        .open(&path)
+        .await
+        .err()
+        .expect("a plain TIFF should be refused");
+    assert_eq!(err.status, http::StatusCode::NOT_FOUND);
+    assert!(
+        err.detail_text().contains("tifffile"),
+        "the refusal should name the plugins that do serve it, got {:?}",
+        err.detail_text()
+    );
 }

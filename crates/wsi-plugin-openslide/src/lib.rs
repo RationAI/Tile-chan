@@ -181,9 +181,11 @@ impl OpenSlideSlide {
         let format = ffi::detect_vendor(&path);
 
         // Divergence from Python: a plain TIFF is handed back to the chain, so `tifffile`
-        // and `tiffslide` get it. libopenslide's generic-TIFF backend exposes only the
-        // first IFD — it reports `num_levels` 1 for a five-level pyramid — and flattens
-        // every page to 8-bit RGB, losing a 16-bit or multi-channel image outright.
+        // and `tiffslide` get it. libopenslide's generic-TIFF backend walks only the
+        // top-level IFD chain — a pyramid kept in SubIFDs, as `tifffile` writes it,
+        // reports `num_levels` 1 — and flattens every page to 8-bit RGB, losing a 16-bit
+        // or multi-channel image outright. The refusal is blanket rather than limited to
+        // those files, so a plain TIFF is always read by a TIFF-native plugin.
         // Python never noticed because `__get_pixel_size` raised on most of these files
         // anyway; now that a missing pixel size is no longer fatal, openslide would
         // otherwise win them all on priority. See `docs/divergences.md`, divergence 39.
