@@ -1,0 +1,9 @@
+target/
+.git/
+.github/
+.idea/
+.env
+docs/
+*.pdb
+parity-*.json
+local_mapper*
