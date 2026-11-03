@@ -48,10 +48,10 @@ fn expected_layout(page: &Page, shape: &[usize]) -> &'static str {
     }
 }
 
-/// Reads a sample out of the recorded numpy buffer, given its layout.
+/// Reads a sample out of the recorded numpy buffer, given its layout and numpy dtype.
 fn recorded(
     bytes: &[u8],
-    dtype: SampleDtype,
+    numpy: &str,
     shape: &[usize],
     layout: &str,
     y: usize,
@@ -64,20 +64,34 @@ fn recorded(
         "shw" => (sample * shape[1] + y) * shape[2] + x,
         other => panic!("unknown layout {other}"),
     };
-    let size = dtype.size();
-    let raster = Raster {
-        height: 1,
-        width: 1,
-        samples: 1,
-        dtype,
-        bytes: bytes[index * size..(index + 1) * size].to_vec(),
-    };
-    raster.get(0, 0, 0)
+    match numpy {
+        // tifffile's own representations of bilevel and half-precision samples, which the
+        // reader holds in `U8` and `F32` instead.
+        "|b1" => f64::from(bytes[index]),
+        "<f2" => f64::from(half::f16::from_le_bytes([
+            bytes[index * 2],
+            bytes[index * 2 + 1],
+        ])),
+        _ => {
+            let dtype = dtype_of(numpy);
+            let size = dtype.size();
+            let raster = Raster {
+                height: 1,
+                width: 1,
+                samples: 1,
+                dtype,
+                bytes: bytes[index * size..(index + 1) * size].to_vec(),
+            };
+            raster.get(0, 0, 0)
+        }
+    }
 }
 
+/// The reader's container for a numpy dtype — the same thing for every standard type,
+/// `U8` for numpy's `bool`, and `F32` for `float16` (`SampleDtype::from_tags`).
 fn dtype_of(text: &str) -> SampleDtype {
     match text {
-        "|u1" => SampleDtype::U8,
+        "|u1" | "|b1" => SampleDtype::U8,
         "|i1" => SampleDtype::I8,
         "<u2" => SampleDtype::U16,
         "<i2" => SampleDtype::I16,
@@ -85,7 +99,7 @@ fn dtype_of(text: &str) -> SampleDtype {
         "<i4" => SampleDtype::I32,
         "<u8" => SampleDtype::U64,
         "<i8" => SampleDtype::I64,
-        "<f4" => SampleDtype::F32,
+        "<f2" | "<f4" => SampleDtype::F32,
         "<f8" => SampleDtype::F64,
         other => panic!("unhandled numpy dtype {other}"),
     }
@@ -204,8 +218,8 @@ fn page_geometry_matches_tifffile() {
                     "{at}: tiledepth"
                 );
                 assert_eq!(
-                    got.dtype.numpy_str(),
-                    page["dtype"].as_str().unwrap(),
+                    got.dtype,
+                    dtype_of(page["dtype"].as_str().unwrap()),
                     "{at}: dtype"
                 );
                 let offsets: Vec<u64> = page["dataoffsets"]
@@ -249,7 +263,8 @@ fn page_pixels_match_tifffile() {
                     .iter()
                     .map(|v| v.as_u64().unwrap() as usize)
                     .collect();
-                let dtype = dtype_of(pixels["dtype"].as_str().unwrap());
+                let numpy = pixels["dtype"].as_str().unwrap();
+                let dtype = dtype_of(numpy);
                 let bytes = decode_base64(pixels["bytes"].as_str().unwrap());
 
                 let page_ref = file.series.levels[level_index].pages[page_index].clone();
@@ -270,7 +285,7 @@ fn page_pixels_match_tifffile() {
                     for x in 0..raster.width {
                         for sample in 0..raster.samples {
                             let got = raster.get(y, x, sample);
-                            let want = recorded(&bytes, dtype, &shape, layout, y, x, sample);
+                            let want = recorded(&bytes, numpy, &shape, layout, y, x, sample);
                             let error = (got - want).abs();
                             if error > worst.0 {
                                 worst = (error, (x, y, sample), got, want);

@@ -187,9 +187,15 @@ impl CsvMapper {
                 );
             }
         } else if source.is_file() {
-            self.read_definition_file(source, &mut index).map_err(|_| {
-                ApiError::internal("Target CSV data definition is not a valid file!")
-            })?;
+            self.read_definition_file(source, &mut index)
+                .map_err(|err| {
+                    tracing::error!(
+                        "Could not read {}: {}",
+                        self.settings.source,
+                        err.detail_text()
+                    );
+                    ApiError::internal("Target CSV data definition is not a valid file!")
+                })?;
         } else {
             tracing::error!(
                 "Path {} is neither a file nor a directory.",

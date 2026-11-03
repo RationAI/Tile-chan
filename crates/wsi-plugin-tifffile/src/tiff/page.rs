@@ -61,17 +61,23 @@ impl SampleDtype {
         })
     }
 
-    fn from_tags(sample_format: u16, bits_per_sample: usize) -> Result<Self> {
+    /// The container a page's samples are decoded into — tifffile's `SAMPLE_DTYPES`.
+    ///
+    /// Unsigned samples narrower than a byte, or between two widths (12-bit, 24-bit), land
+    /// in the next standard width; 1-bit lands in `U8` holding 0 or 1, which is byte for
+    /// byte the `bool` array tifffile returns. float16 is widened to `F32`, because nothing
+    /// downstream has a half-precision type. See `docs/divergences.md`, divergence 42.
+    pub(crate) fn from_tags(sample_format: u16, bits_per_sample: usize) -> Result<Self> {
         Ok(match (sample_format, bits_per_sample) {
-            (1, 8) => SampleDtype::U8,
-            (1, 16) => SampleDtype::U16,
-            (1, 32) => SampleDtype::U32,
-            (1, 64) => SampleDtype::U64,
+            (1, 1..=8) => SampleDtype::U8,
+            (1, 9..=16) => SampleDtype::U16,
+            (1, 17..=32) => SampleDtype::U32,
+            (1, 33..=64) => SampleDtype::U64,
             (2, 8) => SampleDtype::I8,
             (2, 16) => SampleDtype::I16,
             (2, 32) => SampleDtype::I32,
             (2, 64) => SampleDtype::I64,
-            (3, 32) => SampleDtype::F32,
+            (3, 16 | 32) => SampleDtype::F32,
             (3, 64) => SampleDtype::F64,
             _ => {
                 return Err(TiffError(format!(
@@ -223,6 +229,10 @@ pub struct Page {
     pub planar_config: u16,
     pub compression: u16,
     pub predictor: u16,
+    /// `SampleFormat`: 1 unsigned, 2 signed, 3 float.
+    pub sample_format: u16,
+    /// `FillOrder`, which only matters to packed samples.
+    pub fill_order: u16,
     pub tile_width: usize,
     pub tile_length: usize,
     pub tile_depth: usize,
@@ -281,6 +291,8 @@ impl Page {
             planar_config: ifd.u64_or(tag::PLANAR_CONFIGURATION, 1).max(1) as u16,
             compression: ifd.u64_or(tag::COMPRESSION, 1) as u16,
             predictor: ifd.u64_or(tag::PREDICTOR, 1) as u16,
+            sample_format,
+            fill_order: ifd.u64_or(tag::FILL_ORDER, 1) as u16,
             tile_width,
             tile_length,
             tile_depth: ifd.u64_or(tag::TILE_DEPTH, 1).max(1) as usize,
@@ -372,6 +384,8 @@ impl Page {
             samples,
             bits_per_sample: self.bits_per_sample,
             photometric: self.photometric,
+            sample_format: self.sample_format,
+            fill_order: self.fill_order,
         };
         let bytes = decode_chunk(
             self.compression,
@@ -467,9 +481,19 @@ mod tests {
     }
 
     #[test]
+    fn odd_widths_land_in_the_next_standard_container() {
+        assert_eq!(SampleDtype::from_tags(1, 1).unwrap(), SampleDtype::U8);
+        assert_eq!(SampleDtype::from_tags(1, 4).unwrap(), SampleDtype::U8);
+        assert_eq!(SampleDtype::from_tags(1, 12).unwrap(), SampleDtype::U16);
+        assert_eq!(SampleDtype::from_tags(1, 24).unwrap(), SampleDtype::U32);
+        assert_eq!(SampleDtype::from_tags(3, 16).unwrap(), SampleDtype::F32);
+    }
+
+    #[test]
     fn an_unrepresentable_sample_layout_is_rejected() {
-        assert!(SampleDtype::from_tags(3, 16).is_err());
-        assert!(SampleDtype::from_tags(1, 12).is_err());
+        assert!(SampleDtype::from_tags(2, 12).is_err());
+        assert!(SampleDtype::from_tags(3, 24).is_err());
+        assert!(SampleDtype::from_tags(1, 0).is_err());
     }
 
     #[test]

@@ -576,3 +576,116 @@ async fn a_closed_slide_reports_the_python_failure() {
         .unwrap_err();
     assert_eq!(error.status, http::StatusCode::INTERNAL_SERVER_ERROR);
 }
+
+/// `generate.py`'s `ramp`: `(y * 37 + x * 11) % modulo`, offset per channel.
+fn ramp(y: usize, x: usize, modulo: usize, channel: usize) -> usize {
+    ((y * 37 + x * 11) % modulo + channel * (modulo / 3 + 1)) % modulo
+}
+
+async fn whole_page(name: &str, width: u32, height: u32) -> (Arc<dyn Slide>, PlanarData) {
+    let slide = open(name).await;
+    let region = planar(
+        slide
+            .get_region(0, 0, 0, width, height, ReadOptions::default())
+            .await
+            .unwrap_or_else(|e| panic!("{name}: {}", e.detail_text())),
+    );
+    (slide, region)
+}
+
+#[tokio::test]
+async fn sample_layouts_beyond_whole_bytes_are_supported() {
+    for name in [
+        "bilevel.tif",
+        "packed4.tif",
+        "packed12.tif",
+        "packed12_tiled.tif",
+        "packed14_rgb.tif",
+        "uint24.tif",
+        "float16.tif",
+        "float16_pred3.tif",
+        "float32_pred3.ome.tif",
+        "float64_pred3_be.tif",
+        "palette.tif",
+        "miniswhite16.tif",
+        "jpeg2000_u12.tif",
+        "jpeg2000_u16.ome.tif",
+    ] {
+        assert!(plugin().is_supported(&fixture(name)), "{name}");
+    }
+}
+
+#[tokio::test]
+async fn twelve_bit_samples_are_served_in_sixteen_bits_at_their_own_depth() {
+    let (slide, region) = whole_page("packed12.tif", 13, 9).await;
+    assert_eq!(region.dtype(), Dtype::U16);
+    for y in 0..9 {
+        for x in 0..13 {
+            assert_eq!(
+                region.get_f64(0, y, x),
+                ramp(y, x, 4096, 0) as f64,
+                "at ({x}, {y})"
+            );
+        }
+    }
+    // `channel_depth` is the stored depth, not the container's, exactly as in Python.
+    assert_eq!(slide.get_info().await.unwrap().channel_depth, Some(12));
+}
+
+#[tokio::test]
+async fn bilevel_samples_are_served_as_zero_and_one() {
+    // See `docs/divergences.md`, divergence 42.
+    let (slide, region) = whole_page("bilevel.tif", 13, 9).await;
+    assert_eq!(region.dtype(), Dtype::U8);
+    for y in 0..9 {
+        for x in 0..13 {
+            assert_eq!(
+                region.get_f64(0, y, x),
+                ramp(y, x, 2, 0) as f64,
+                "at ({x}, {y})"
+            );
+        }
+    }
+    assert_eq!(slide.get_info().await.unwrap().channel_depth, Some(1));
+}
+
+#[tokio::test]
+async fn float16_behind_the_floating_point_predictor_is_served_as_float32() {
+    // See `docs/divergences.md`, divergence 42.
+    let (slide, region) = whole_page("float16_pred3.tif", 50, 40).await;
+    assert_eq!(region.dtype(), Dtype::F32);
+    for y in 0..40 {
+        for x in 0..50 {
+            let stored = half::f16::from_f64(ramp(y, x, 997, 0) as f64 / 7.0 - 50.0);
+            assert_eq!(region.get_f64(0, y, x), stored.to_f64(), "at ({x}, {y})");
+        }
+    }
+    assert_eq!(slide.get_info().await.unwrap().channel_depth, Some(16));
+}
+
+#[tokio::test]
+async fn lossless_jpeg2000_tiles_are_exact() {
+    let (_, region) = whole_page("jpeg2000_u16.ome.tif", 50, 40).await;
+    assert_eq!(region.dtype(), Dtype::U16);
+    for c in 0..2 {
+        for y in 0..40 {
+            for x in 0..50 {
+                let expected = (ramp(y, x, 4096, c) * 16) as f64;
+                assert_eq!(region.get_f64(c, y, x), expected, "at ({x}, {y}, {c})");
+            }
+        }
+    }
+}
+
+#[tokio::test]
+async fn palette_and_white_is_zero_pages_serve_their_stored_values() {
+    // tifffile's `asarray()` neither applies the colormap nor inverts WhiteIsZero, and
+    // neither does Python's plugin; the raw values are what a client receives.
+    let (_, region) = whole_page("palette.tif", 13, 9).await;
+    assert_eq!(region.dtype(), Dtype::U8);
+    assert_eq!(region.get_f64(0, 3, 5), ramp(3, 5, 256, 0) as f64);
+
+    let (_, region) = whole_page("miniswhite16.tif", 13, 9).await;
+    assert_eq!(region.dtype(), Dtype::U16);
+    assert_eq!(region.get_f64(0, 3, 5), (ramp(3, 5, 4096, 0) * 16) as f64);
+}

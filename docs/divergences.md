@@ -820,6 +820,22 @@ of which is a 404 on both services before the change:
 | 8-bit palette | `tifffile` | 1 | 8 |
 | 6-channel 16-bit | `tifffile` | 6 | 16 |
 
+"Reads any bit depth" is true of Python's `tifffile`, which hands odd layouts to
+imagecodecs. The port's reader matches it on every layout in the fixture manifest, and
+each one is checked value for value against `page.asarray()` by `tests/reader.rs`:
+
+- packed integers of 1-8 bits (served as `uint8`), 9-16 bits (`uint16`) and 17-32 bits
+  (`uint32`), in strips or tiles and either `FillOrder`;
+- float16, served as float32 (divergence 42);
+- the floating-point predictor (3) on 16-, 32- and 64-bit floats;
+- JPEG 2000 (33003, 33005, 34712), decoded by openjpeg as imagecodecs does. Aperio 33003
+  is 4:2:0 YCbCr and is upsampled and converted the way `opj_decompress` does it, which is
+  what imagecodecs does too.
+
+Palette and WhiteIsZero pages serve their stored values, with no colormap applied and no
+inversion, exactly as `asarray()` returns them. `channel_depth` reports the stored
+`BitsPerSample` (12 for a 12-bit page), not the container width, as Python does.
+
 Two upstream behaviours are left alone, because they are not what makes these files
 unreadable. `convert_narray_uintX_to_uint8` defaults the window's upper bound to
 `2**exp / (exp / 4)` rather than `2**exp - 1` (`image_utils.py:35`), so a 16-bit image
@@ -892,3 +908,32 @@ Python does.
 Note this changes tile *addressing* for affected slides, so a client holding tiles cached
 under the old geometry must drop them. It is deliberately not scoped to NDPI: any striped
 page reaches the same code, in `openslide` and `tiffslide` alike.
+
+### 42. float16 and bilevel pages render instead of returning 400
+
+`wsi_service/utils/image_utils.py:65`
+
+```python
+if narray.dtype == np.uint8: ...
+elif narray.dtype == np.uint16: ...
+elif narray.dtype in [np.uint32, np.float32]: ...
+elif narray.dtype in [np.uint64, np.float64]: ...
+else:
+    raise HTTPException(status_code=400, detail="Array conversion not supported")
+```
+
+`tifffile` returns a 1-bit page as a numpy `bool` array and a half-precision page as
+`float16`. Neither has a branch here, so every rendered tile of such a page is a 400.
+It is the same failure as divergence 40, reached by a different dtype.
+
+**Port:** the reader decodes into the container `SampleDtype::from_tags` chooses, and
+there is no `bool` or `float16` container:
+
+- A bilevel sample is a `uint8` holding 0 or 1. That is byte for byte what the `bool` array
+  holds. It takes the 8-bit window, so a bilevel page renders almost black. 2- to 7-bit
+  pages already render that way in Python, so this was left alone rather than special-cased.
+- A float16 sample is widened to float32, losslessly, and windowed like float32. TIFF
+  output carries float32.
+
+Pinned by `tests/plugin.rs::bilevel_samples_are_served_as_zero_and_one` and
+`float16_behind_the_floating_point_predictor_is_served_as_float32`.

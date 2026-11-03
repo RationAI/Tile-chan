@@ -23,6 +23,7 @@ pub mod tag {
     pub const BITS_PER_SAMPLE: u16 = 258;
     pub const COMPRESSION: u16 = 259;
     pub const PHOTOMETRIC: u16 = 262;
+    pub const FILL_ORDER: u16 = 266;
     pub const IMAGE_DESCRIPTION: u16 = 270;
     pub const STRIP_OFFSETS: u16 = 273;
     pub const SAMPLES_PER_PIXEL: u16 = 277;

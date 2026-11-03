@@ -525,6 +525,8 @@ mod tests {
             planar_config: 1,
             compression: 1,
             predictor: 1,
+            sample_format: 1,
+            fill_order: 1,
             tile_width: 0,
             tile_length: 0,
             tile_depth: 1,

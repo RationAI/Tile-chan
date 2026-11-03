@@ -212,6 +212,8 @@ impl FrameSet {
             samples: self.samples,
             bits_per_sample: self.bits_allocated,
             photometric: self.photometric,
+            sample_format: 1,
+            fill_order: 1,
         };
         let bytes = decode_chunk(
             self.compression,

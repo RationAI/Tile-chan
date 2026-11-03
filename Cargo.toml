@@ -34,8 +34,11 @@ dotenvy = "0.15"
 flate2 = "1"
 futures = "0.3"
 glob = "0.3"
+half = "2"
 http = "1"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "bmp", "gif", "tiff"] }
+# openjpeg, built from vendored source: the JPEG 2000 decoder imagecodecs uses for tifffile.
+jpeg2k = { version = "0.10.1", default-features = false, features = ["openjpeg-sys"] }
 jsonwebtoken = "9"
 lcms2 = "6"
 lru = "0.12"

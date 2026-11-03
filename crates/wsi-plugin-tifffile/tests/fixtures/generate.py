@@ -367,6 +367,127 @@ def fixtures() -> dict[str, callable]:
         )
 
     named["predictor_deflate.ome.tif"] = predictor_deflate
+
+    named.update(sample_layout_fixtures())
+    return named
+
+
+def ramp(height: int, width: int, modulo: int, channels: int | None = None) -> np.ndarray:
+    """Values that wrap at `modulo`, so every bit of a packed sample gets exercised."""
+    ys, xs = np.mgrid[0:height, 0:width]
+    plane = (ys * 37 + xs * 11) % modulo
+    if channels is None:
+        return plane
+    return np.stack([(plane + c * (modulo // 3 + 1)) % modulo for c in range(channels)])
+
+
+def sample_layout_fixtures() -> dict[str, callable]:
+    """Bit depths, sample formats, predictors and codecs beyond whole-byte integers.
+
+    tifffile reads all of these through imagecodecs; the Rust reader has to unpack, widen
+    and decode them to the same values. Palette and WhiteIsZero pin that the raw stored
+    values are served, exactly as `asarray()` returns them.
+    """
+    named = {}
+
+    def bilevel(path):
+        tifffile.imwrite(path, ramp(9, 13, 2).astype(bool), photometric="minisblack")
+
+    def packed4(path):
+        tifffile.imwrite(
+            path, ramp(9, 13, 16).astype(np.uint8), bitspersample=4,
+            photometric="minisblack", rowsperstrip=4,
+        )
+
+    def packed12(path):
+        # An odd width leaves 4 bits of padding at the end of every row.
+        tifffile.imwrite(
+            path, ramp(9, 13, 4096).astype(np.uint16), bitspersample=12,
+            photometric="minisblack", rowsperstrip=4,
+        )
+
+    def packed12_tiled(path):
+        tifffile.imwrite(
+            path, ramp(40, 50, 4096).astype(np.uint16), bitspersample=12,
+            photometric="minisblack", tile=(16, 16),
+        )
+
+    def packed14_rgb(path):
+        rgb = np.moveaxis(ramp(9, 13, 16384, channels=3), 0, -1).astype(np.uint16)
+        tifffile.imwrite(path, rgb, bitspersample=14, photometric="rgb")
+
+    def uint24(path):
+        tifffile.imwrite(
+            path, (ramp(9, 13, 4096) * 4093).astype(np.uint32), bitspersample=24,
+            photometric="minisblack",
+        )
+
+    def float16(path):
+        tifffile.imwrite(
+            path, (ramp(9, 13, 997) / 7 - 50).astype(np.float16), photometric="minisblack"
+        )
+
+    def float16_pred3(path):
+        tifffile.imwrite(
+            path, (ramp(40, 50, 997) / 7 - 50).astype(np.float16),
+            photometric="minisblack", tile=(16, 16), compression="deflate", predictor=3,
+        )
+
+    def float32_pred3(path):
+        tifffile.imwrite(
+            path, (ramp(40, 50, 10007, channels=2) / 13 - 300).astype(np.float32),
+            photometric="minisblack", tile=(16, 16), compression="deflate", predictor=3,
+            metadata={"axes": "CYX"}, ome=True,
+        )
+
+    def float64_pred3_be(path):
+        tifffile.imwrite(
+            path, (ramp(9, 13, 10007) / 13 - 300).astype(">f8"),
+            photometric="minisblack", compression="lzw", predictor=3, byteorder=">",
+        )
+
+    def palette(path):
+        colormap = np.stack(
+            [np.arange(256) * 257, (255 - np.arange(256)) * 257, np.full(256, 32768)]
+        ).astype(np.uint16)
+        tifffile.imwrite(
+            path, ramp(9, 13, 256).astype(np.uint8), photometric="palette",
+            colormap=colormap,
+        )
+
+    def miniswhite16(path):
+        tifffile.imwrite(
+            path, (ramp(9, 13, 4096) * 16).astype(np.uint16), photometric="miniswhite"
+        )
+
+    def jpeg2000_u16(path):
+        tifffile.imwrite(
+            path, (ramp(40, 50, 4096, channels=2) * 16).astype(np.uint16),
+            photometric="minisblack", tile=(32, 32), compression="jpeg2000",
+            compressionargs={"level": 0}, metadata={"axes": "CYX"}, ome=True,
+        )
+
+    def jpeg2000_u12(path):
+        tifffile.imwrite(
+            path, ramp(40, 50, 4096).astype(np.uint16), bitspersample=12,
+            photometric="minisblack", tile=(32, 32), compression="jpeg2000",
+            compressionargs={"level": 0},
+        )
+
+    def jpeg2000_rgb(path):
+        # Lossy, so the Rust side compares within a tolerance.
+        tifffile.imwrite(
+            path, rgb_planes(64, 96), photometric="rgb", tile=(32, 32),
+            compression="jpeg2000", compressionargs={"level": 40},
+        )
+
+    for writer in (
+        bilevel, packed4, packed12, packed12_tiled, packed14_rgb, uint24, float16,
+        float16_pred3, float64_pred3_be, palette, miniswhite16, jpeg2000_u12, jpeg2000_rgb,
+    ):
+        named[f"{writer.__name__}.tif"] = writer
+    named["float32_pred3.ome.tif"] = float32_pred3
+    named["jpeg2000_u16.ome.tif"] = jpeg2000_u16
     return named
 
 
