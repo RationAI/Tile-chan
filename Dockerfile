@@ -27,6 +27,9 @@ RUN apt-get update \
 # `openslide-python`'s `color_profile`. Built from the fork the Python image builds, so both
 # link the same decoder. libdicom is not packaged for bookworm, but openslide's meson vendors
 # it as a subproject, so the DICOM backend ends up enabled here as it does there.
+# libjxr-dev must be present: the fork's JPEG XR (CZI) decoder is compiled only when meson
+# finds libjxr, but CZI open accepts JXR subblocks regardless, so without it reading a JXR
+# tile hits `g_assert_not_reached()` in czi_read_raw and aborts the whole process.
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
         git \
@@ -44,6 +47,7 @@ RUN apt-get update \
         libsqlite3-dev \
         libcairo2-dev \
         libglib2.0-dev \
+        libjxr-dev \
     && rm -rf /var/lib/apt/lists/* \
     && git clone --depth 1 https://github.com/iewchen/openslide.git /tmp/openslide \
     && meson setup /tmp/openslide/builddir /tmp/openslide \
@@ -117,6 +121,7 @@ RUN apt-get update \
         libpng16-16 \
         libjpeg62-turbo \
         libzstd1 \
+        libjxr0 \
         tini \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 10001 appuser
